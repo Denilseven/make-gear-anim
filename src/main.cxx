@@ -33,6 +33,14 @@ Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees)
     return result + center;
 }
 
+Part* getPartByName(const std::string name, std::vector<Part>& list) {
+    for (auto &part : list) {
+        if (part.name == name)
+            return &part;
+    }
+    return nullptr;
+}
+
 int main() {
     InitWindow(WIN_WIDTH, WIN_HEIGHT, "Awesome");
     SetTargetFPS(60);
@@ -48,6 +56,16 @@ int main() {
             .position = (Vector2){500, 500},
         }
     );
+    parts.push_back(
+        (Part){
+            .name = "Connected",
+            .bounds = (Rectangle){0, 0, 50, 300},
+            .pivot = (Vector2){25, 250},
+            .partAttachedTo = "Heheh",
+            .attachedToPointN = 1,
+            .position = (Vector2){0, 0},
+        }
+    );
     parts[0].attachmentPoints.push_back((Vector2){0, -100});
     parts[0].attachmentPoints.push_back((Vector2){100, 0});
 
@@ -58,11 +76,29 @@ int main() {
         // parts[0].scale = (Vector2){(float)GetMouseX() / 100.0f, (float)GetMouseY() / 100.0f};
         parts[0].scale = (Vector2){1.0f, 1.0f};
         parts[0].rotation = GetTime() * 25;
+        parts[0].rotation = GetTime() * 50;
         // parts[0].rotation = 40;
         parts[0].position = GetMousePosition();
 
         for (int i = 0; i < parts.size(); i++) {
             Part part = parts[i];
+            
+            if (!part.partAttachedTo.empty()) {
+                Part* parent = getPartByName(part.partAttachedTo, parts);
+                if (part.attachedToPointN == 0) {
+                    part.position = parent->position;
+                }
+                else {
+                    part.position = rotateAround(
+                        parent->attachmentPoints[part.attachedToPointN-1] + parent->position,
+                        parent->position,
+                        parent->rotation
+                    );
+                }
+                part.rotation = part.rotation + parent->rotation;
+            }
+            std::cout << part.name << part.position.x << std::endl;
+
             DrawTexturePro(
                 texture,
                 part.bounds,
@@ -71,8 +107,8 @@ int main() {
                 part.rotation,
                 ORANGE
             );
-            DrawCircleGradient(part.position, 10, TRANSPARENT, BLUE);
 
+            DrawCircleGradient(part.position, 10, TRANSPARENT, BLUE);
             for (int j = 0; j < part.attachmentPoints.size(); j++) {
                 DrawCircleGradient(
                     rotateAround(
