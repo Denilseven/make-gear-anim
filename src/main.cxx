@@ -1,14 +1,14 @@
-// TODO: take `scale` into account for `attachmentPoints` positioning
-
 #include <iostream>
 #include <raylib.h>
 #include <raymath.h>
 #include <string>
 #include <vector>
 
+#define TEXTURE_TO_LOAD "assets/character_sprites.png"
 #define WIN_WIDTH 1000
 #define WIN_HEIGHT 1000
-#define TRANSPARENT (Color){1, 1, 1, 0}
+#define TRANSPARENT (Color){255, 255, 255, 0}
+#define PHANTOM (Color){0, 255, 0, 120}
 
 struct Part {
     std::string name{};
@@ -35,29 +35,27 @@ Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees)
 }
 
 int main() {
-    InitWindow(WIN_WIDTH, WIN_HEIGHT, "Awesome");
     SetTargetFPS(60);
-
-    Texture2D texture = LoadTexture("assets/image.png");
+    Texture2D texture = LoadTexture(TEXTURE_TO_LOAD);
     std::vector<Part> parts{};
-     
+
     parts.push_back(
         (Part){
-            .name = "Heheh",
+            .name = "Core",
             .bounds = (Rectangle){0, 0, 200, 200},
             .pivot = (Vector2){100, 100},
         }
     );
     parts.push_back(
         (Part){
-            .name = "Connected",
+            .name = "Leg1",
             .bounds = (Rectangle){0, 0, 50, 300},
             .pivot = (Vector2){25, 250},
         }
     );
     parts.push_back(
         (Part){
-            .name = "Last",
+            .name = "Leg2",
             .bounds = (Rectangle){0, 0, 50, 150},
             .pivot = (Vector2){25, 0},
         }
@@ -74,6 +72,22 @@ int main() {
     parts[2].parent = &parts[1];
     parts[2].connectedNotch = 0;
 
+    InitWindow(texture.width, texture.height, "FIRST_WINDOW");
+    texture = LoadTexture(TEXTURE_TO_LOAD);
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        ClearBackground(LIGHTGRAY);
+        DrawTexture(texture, 0, 0, WHITE);
+        for (Part& part : parts) {
+            DrawRectangleLinesEx(part.bounds, 1, LIME);
+            DrawCircleLinesV(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 7, LIME);
+        }
+        EndDrawing();
+    }
+    CloseWindow();
+
+    InitWindow(WIN_WIDTH, WIN_HEIGHT, "SECOND_WINDOW");
+    texture = LoadTexture(TEXTURE_TO_LOAD);
     while(!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(LIGHTGRAY);
@@ -102,7 +116,7 @@ int main() {
                 (Rectangle){part.position.x, part.position.y, part.bounds.width, part.bounds.height},
                 (Vector2){part.pivot.x, part.pivot.y},
                 part.worldRotation,
-                ORANGE
+                WHITE
             );
         }
 
