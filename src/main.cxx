@@ -14,14 +14,15 @@ struct Part {
     std::string name{};
     Rectangle bounds{};
     Vector2 pivot{};
-    std::vector<Vector2> attachmentPoints{};
 
-    std::string partAttachedTo{};
-    int attachedToPointN{0};
+    Part* parent{nullptr};
+    int connectedNotch{-1};
 
     Vector2 position{};
-    Vector2 scale{1.0f, 1.0f};
-    float rotation{0.0f};
+    float localRotation{0.0f};
+    float worldRotation{0.0f};
+    std::vector<Vector2> localNotches{};
+    std::vector<Vector2> worldNotches{};
 };
 
 Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees) {
@@ -31,14 +32,6 @@ Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees)
         result.y = (point.x-center.x)*std::sin(radians) + (point.y-center.y)*std::cos(radians)
     };
     return result + center;
-}
-
-Part* getPartByName(const std::string name, std::vector<Part>& list) {
-    for (auto &part : list) {
-        if (part.name == name)
-            return &part;
-    }
-    return nullptr;
 }
 
 int main() {
@@ -53,7 +46,6 @@ int main() {
             .name = "Heheh",
             .bounds = (Rectangle){0, 0, 200, 200},
             .pivot = (Vector2){100, 100},
-            .position = (Vector2){500, 500},
         }
     );
     parts.push_back(
@@ -61,63 +53,70 @@ int main() {
             .name = "Connected",
             .bounds = (Rectangle){0, 0, 50, 300},
             .pivot = (Vector2){25, 250},
-            .partAttachedTo = "Heheh",
-            .attachedToPointN = 1,
-            .position = (Vector2){0, 0},
         }
     );
-    parts[0].attachmentPoints.push_back((Vector2){0, -100});
-    parts[0].attachmentPoints.push_back((Vector2){100, 0});
+    parts.push_back(
+        (Part){
+            .name = "Last",
+            .bounds = (Rectangle){0, 0, 50, 150},
+            .pivot = (Vector2){25, 0},
+        }
+    );
+    parts[0].localNotches.push_back((Vector2){0, -100});
+    parts[0].localNotches.push_back((Vector2){100, 0});
+    parts[0].worldNotches.resize(2);
+
+    parts[1].parent = &parts[0];
+    parts[1].connectedNotch = 1;
+    parts[1].localNotches.push_back((Vector2){0, -250});
+    parts[1].worldNotches.resize(1);
+
+    parts[2].parent = &parts[1];
+    parts[2].connectedNotch = 0;
 
     while(!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(LIGHTGRAY);
 
         // parts[0].scale = (Vector2){(float)GetMouseX() / 100.0f, (float)GetMouseY() / 100.0f};
-        parts[0].scale = (Vector2){1.0f, 1.0f};
-        parts[0].rotation = GetTime() * 25;
-        parts[0].rotation = GetTime() * 50;
-        // parts[0].rotation = 40;
+        parts[0].localRotation = GetTime() * 25;
+        parts[1].localRotation = GetTime() * -50;
+        parts[2].localRotation = GetTime() * 37;
         parts[0].position = GetMousePosition();
 
-        for (int i = 0; i < parts.size(); i++) {
-            Part part = parts[i];
-            
-            if (!part.partAttachedTo.empty()) {
-                Part* parent = getPartByName(part.partAttachedTo, parts);
-                if (part.attachedToPointN == 0) {
-                    part.position = parent->position;
-                }
-                else {
-                    part.position = rotateAround(
-                        parent->attachmentPoints[part.attachedToPointN-1] + parent->position,
-                        parent->position,
-                        parent->rotation
-                    );
-                }
-                part.rotation = part.rotation + parent->rotation;
+        for (Part& part : parts) {
+            if (part.parent != nullptr) {
+                if (part.connectedNotch == -1)
+                    part.position = part.parent->position;
+                else
+                    part.position = part.parent->worldNotches[part.connectedNotch];
+                part.worldRotation = part.localRotation + part.parent->worldRotation;
             }
-            std::cout << part.name << part.position.x << std::endl;
-
+            else {
+                part.worldRotation = part.localRotation;
+            }
+            
             DrawTexturePro(
                 texture,
                 part.bounds,
-                (Rectangle){part.position.x, part.position.y, part.bounds.width * part.scale.x, part.bounds.height * part.scale.y},
-                (Vector2){part.pivot.x * part.scale.x, part.pivot.y * part.scale.y},
-                part.rotation,
+                (Rectangle){part.position.x, part.position.y, part.bounds.width, part.bounds.height},
+                (Vector2){part.pivot.x, part.pivot.y},
+                part.worldRotation,
                 ORANGE
             );
+        }
 
-            DrawCircleGradient(part.position, 10, TRANSPARENT, BLUE);
-            for (int j = 0; j < part.attachmentPoints.size(); j++) {
-                DrawCircleGradient(
-                    rotateAround(
-                        part.attachmentPoints[j] + part.position,
-                        part.position,
-                        part.rotation
-                    ),
-                    7 * (j + 1), TRANSPARENT, RED);
+        // Gizmos
+        for (Part& part : parts) {
+            for (int i = 0; i < part.localNotches.size(); i++) {
+                part.worldNotches[i] = rotateAround(
+                    part.localNotches[i] + part.position,
+                    part.position,
+                    part.worldRotation
+                );
+                DrawCircleGradient(part.worldNotches[i], 7*(i+1), TRANSPARENT, RED);
             }
+            DrawCircleGradient(part.position, 10, TRANSPARENT, BLUE);
         }
 
         EndMode2D();
