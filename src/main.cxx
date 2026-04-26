@@ -6,6 +6,7 @@
 #include <vector>
 
 #define TEXTURE_TO_LOAD "assets/character_sprites.png"
+#define PARTS_DESCRIPTION_FILE "parts.txt"
 #define WIN_WIDTH 1000
 #define WIN_HEIGHT 1000
 #define TRANSPARENT (Color){255, 255, 255, 0}
@@ -44,11 +45,10 @@ Part* getPartByName(std::vector<Part>& list, const std::string name) {
     return nullptr;
 }
 
-// NOTE: This is assuming there won't be any errors in the file itself
-void setFromFile(std::vector<Part>& list, const char* filename) {
+bool setFromFile(std::vector<Part>& list, const char* filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "Error: Unable to open `parts.txt`!" << std::endl;
+        std::cerr << "Error: Unable to open `" << PARTS_DESCRIPTION_FILE << "`!" << std::endl;
         std::exit(1);
     }
 
@@ -60,27 +60,29 @@ void setFromFile(std::vector<Part>& list, const char* filename) {
         if (s == "+") {
             Part newPart{};
 
-            getline(file, s); newPart.name = s;
-            getline(file, s); newPart.bounds.x = std::stoi(s);
-            getline(file, s); newPart.bounds.y = std::stoi(s);
-            getline(file, s); newPart.bounds.width = std::stoi(s);
-            getline(file, s); newPart.bounds.height = std::stoi(s);
-            getline(file, s); newPart.pivot.x = std::stoi(s);
-            getline(file, s); newPart.pivot.y = std::stoi(s);
-            getline(file, s); parents.push_back(s);
-            getline(file, s); newPart.connectedNotch = std::stoi(s);
-        
-            getline(file, s);
-            while (s == ".") {
-                getline(file, s); int x = std::stoi(s);
-                getline(file, s); int y = std::stoi(s);
-                newPart.localNotches.push_back((Vector2){(float)x, (float)y});
-                newPart.worldNotches.push_back((Vector2){(float)x, (float)y});
+            try {
+                getline(file, s); newPart.name = s;
+                getline(file, s); newPart.bounds.x = std::stoi(s);
+                getline(file, s); newPart.bounds.y = std::stoi(s);
+                getline(file, s); newPart.bounds.width = std::stoi(s);
+                getline(file, s); newPart.bounds.height = std::stoi(s);
+                getline(file, s); newPart.pivot.x = std::stoi(s);
+                getline(file, s); newPart.pivot.y = std::stoi(s);
+                getline(file, s); parents.push_back(s);
+                getline(file, s); newPart.connectedNotch = std::stoi(s);
+            
                 getline(file, s);
+                while (s == ".") {
+                    getline(file, s); int x = std::stoi(s);
+                    getline(file, s); int y = std::stoi(s);
+                    newPart.localNotches.push_back((Vector2){(float)x, (float)y});
+                    newPart.worldNotches.push_back((Vector2){(float)x, (float)y});
+                    getline(file, s);
+                }
             }
-            std::cout << newPart.name << std::endl;
-            std::cout << &newPart << " is my pointer." << std::endl;
-            std::cout << newPart.parent << " is my parent pointer." << std::endl;
+            catch (...) {
+                return false;
+            }
             list.push_back(newPart);
         }
     }
@@ -90,6 +92,7 @@ void setFromFile(std::vector<Part>& list, const char* filename) {
         // them while it is being built and resized seems to mess up everything.
     }
     file.close();
+    return true;
 }
 
 int main() {
@@ -97,21 +100,33 @@ int main() {
     Texture2D texture = LoadTexture(TEXTURE_TO_LOAD);
 
     std::vector<Part> parts{};
-    setFromFile(parts, "parts.txt");
 
     InitWindow(texture.width, texture.height, "FIRST_WINDOW");
     texture = LoadTexture(TEXTURE_TO_LOAD);
-    while (!WindowShouldClose()) {
-        BeginDrawing();
-        ClearBackground(LIGHTGRAY);
-        DrawTexture(texture, 0, 0, WHITE);
-        for (Part& part : parts) {
-            DrawRectangleLinesEx(part.bounds, 1, LIME);
-            DrawCircleLinesV(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 7, LIME);
+    bool partsAreValid = setFromFile(parts, PARTS_DESCRIPTION_FILE);
+    float timer{0.0f}; // This `timer` thing could be improved but it's ok
+    while (!WindowShouldClose() && !IsKeyDown(KEY_ENTER)) {
+        timer += GetFrameTime();
+        if (timer >= 0.1f) {
+            timer = 0.0f;
+            partsAreValid = setFromFile(parts, PARTS_DESCRIPTION_FILE);
         }
+        BeginDrawing();
+        ClearBackground(DARKGRAY);
+        DrawTexture(texture, 0, 0, BLACK);
+        for (Part& part : parts) {
+            DrawRectangleLinesEx(part.bounds, 1, GREEN);
+            DrawCircleLinesV(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 7, GREEN);
+        }
+        if (!partsAreValid)
+            DrawText("Parts description file is invalid!", 10, 10, 20, RED);
         EndDrawing();
     }
     CloseWindow();
+    if (!partsAreValid) {
+        UnloadTexture(texture);
+        return 0;
+    }
 
     InitWindow(WIN_WIDTH, WIN_HEIGHT, "SECOND_WINDOW");
     texture = LoadTexture(TEXTURE_TO_LOAD);
