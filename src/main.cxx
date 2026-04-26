@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <raylib.h>
 #include <raymath.h>
@@ -34,43 +35,69 @@ Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees)
     return result + center;
 }
 
+Part* getPartByName(std::vector<Part>& list, const std::string name) {
+    for (int i = 0; i < list.size(); i++) {
+        if (list[i].name == name) {
+            return &list[i];
+        }
+    }
+    return nullptr;
+}
+
+// NOTE: This is assuming there won't be any errors in the file itself
+void setFromFile(std::vector<Part>& list, const char* filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error: Unable to open `parts.txt`!" << std::endl;
+        std::exit(1);
+    }
+
+    list.clear();
+
+    std::vector<std::string> parents{};
+    std::string s{};
+    while (getline(file, s)) {
+        if (s == "+") {
+            Part newPart{};
+
+            getline(file, s); newPart.name = s;
+            getline(file, s); newPart.bounds.x = std::stoi(s);
+            getline(file, s); newPart.bounds.y = std::stoi(s);
+            getline(file, s); newPart.bounds.width = std::stoi(s);
+            getline(file, s); newPart.bounds.height = std::stoi(s);
+            getline(file, s); newPart.pivot.x = std::stoi(s);
+            getline(file, s); newPart.pivot.y = std::stoi(s);
+            getline(file, s); parents.push_back(s);
+            getline(file, s); newPart.connectedNotch = std::stoi(s);
+        
+            getline(file, s);
+            while (s == ".") {
+                getline(file, s); int x = std::stoi(s);
+                getline(file, s); int y = std::stoi(s);
+                newPart.localNotches.push_back((Vector2){(float)x, (float)y});
+                newPart.worldNotches.push_back((Vector2){(float)x, (float)y});
+                getline(file, s);
+            }
+            std::cout << newPart.name << std::endl;
+            std::cout << &newPart << " is my pointer." << std::endl;
+            std::cout << newPart.parent << " is my parent pointer." << std::endl;
+            list.push_back(newPart);
+        }
+    }
+    for (int i = 0; i < list.size(); i++) {
+        list[i].parent = getPartByName(list, parents[i]);
+        // We set the parent pointers after the list is complete because setting
+        // them while it is being built and resized seems to mess up everything.
+    }
+    file.close();
+}
+
 int main() {
     SetTargetFPS(60);
     Texture2D texture = LoadTexture(TEXTURE_TO_LOAD);
+
     std::vector<Part> parts{};
-
-    parts.push_back(
-        (Part){
-            .name = "Core",
-            .bounds = (Rectangle){0, 0, 200, 200},
-            .pivot = (Vector2){100, 100},
-        }
-    );
-    parts.push_back(
-        (Part){
-            .name = "Leg1",
-            .bounds = (Rectangle){0, 0, 50, 300},
-            .pivot = (Vector2){25, 250},
-        }
-    );
-    parts.push_back(
-        (Part){
-            .name = "Leg2",
-            .bounds = (Rectangle){0, 0, 50, 150},
-            .pivot = (Vector2){25, 0},
-        }
-    );
-    parts[0].localNotches.push_back((Vector2){0, -100});
-    parts[0].localNotches.push_back((Vector2){100, 0});
-    parts[0].worldNotches.resize(2);
-
-    parts[1].parent = &parts[0];
-    parts[1].connectedNotch = 1;
-    parts[1].localNotches.push_back((Vector2){0, -250});
-    parts[1].worldNotches.resize(1);
-
-    parts[2].parent = &parts[1];
-    parts[2].connectedNotch = 0;
+    setFromFile(parts, "parts.txt");
 
     InitWindow(texture.width, texture.height, "FIRST_WINDOW");
     texture = LoadTexture(TEXTURE_TO_LOAD);
