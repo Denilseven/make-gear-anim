@@ -100,33 +100,62 @@ int main() {
     Texture2D texture = LoadTexture(TEXTURE_TO_LOAD);
 
     std::vector<Part> parts{};
+    std::vector<Color> debugColors = {GOLD, PINK, GREEN, SKYBLUE, PURPLE};
 
     InitWindow(texture.width, texture.height, "FIRST_WINDOW");
+
     texture = LoadTexture(TEXTURE_TO_LOAD);
     bool partsAreValid = setFromFile(parts, PARTS_DESCRIPTION_FILE);
     float timer{0.0f}; // This `timer` thing could be improved but it's ok
+
     while (!WindowShouldClose() && !IsKeyDown(KEY_ENTER)) {
+        SetMouseCursor(3);
         timer += GetFrameTime();
         if (timer >= 0.1f) {
             timer = 0.0f;
             partsAreValid = setFromFile(parts, PARTS_DESCRIPTION_FILE);
         }
+
         BeginDrawing();
         ClearBackground(DARKGRAY);
+
+        Vector2 mousePos = GetMousePosition();
+        DrawLine(mousePos.x, 0, mousePos.x, texture.height, GRAY);
+        DrawLine(0, mousePos.y, texture.width, mousePos.y, GRAY);
+        DrawText(TextFormat("%.f\n%.f", mousePos.x, mousePos.y), 10, 10, 20, LIGHTGRAY);
+
         DrawTexture(texture, 0, 0, BLACK);
-        for (Part& part : parts) {
-            DrawRectangleLinesEx(part.bounds, 1, GREEN);
-            DrawCircleLinesV(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 7, GREEN);
+        for (int i = 0; i < parts.size(); i++) {
+            Part& part = parts[i];
+            Color color = debugColors[i%parts.size()];
+
+            DrawRectangleLinesEx(part.bounds, 1, color);
+
+            DrawPolyLines(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 4, 20, GetTime()*100, color);
+            DrawCircleV(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 2, color);
+
+            for (int j = 0; j < part.localNotches.size(); j++) {
+                Vector2& notch = part.localNotches[j];
+                DrawCircleLinesV(
+                    notch + (Vector2){part.bounds.x, part.bounds.y} + part.pivot,
+                    14+(j*2), color);
+                DrawCircleV(
+                    notch + (Vector2){part.bounds.x, part.bounds.y} + part.pivot,
+                    2, color
+                );
+            }
         }
         if (!partsAreValid)
-            DrawText("Parts description file is invalid!", 10, 10, 20, RED);
+            DrawText("Parts description file is invalid!", 10, 50, 20, RED);
         EndDrawing();
+    
     }
-    CloseWindow();
     if (!partsAreValid) {
         UnloadTexture(texture);
+        CloseWindow();
         return 0;
     }
+    CloseWindow();
 
     InitWindow(WIN_WIDTH, WIN_HEIGHT, "SECOND_WINDOW");
     texture = LoadTexture(TEXTURE_TO_LOAD);

@@ -1,3 +1,13 @@
+:NAME
+:BOUNDS X
+:BOUNDS Y
+:BOUNDS WIDTH
+:BOUNDS HEIGHT
+:PIVOT X
+:PIVOT Y
+:PARENT
+:NOTCH ATTACHED TO
+
 +
 Core
 30
@@ -5,15 +15,12 @@ Core
 320
 410
 224
-370
+360
 ROOT
 -1
 .
 0
--100
-.
-100
-0
+-291
 
 +
 Leg1
@@ -24,10 +31,10 @@ Leg1
 69
 0
 Core
-0
+-1
 .
 0
--250
+271
 
 +
 Leg2
