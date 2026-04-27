@@ -131,16 +131,16 @@ int main() {
 
             DrawRectangleLinesEx(part.bounds, 1, color);
 
-            DrawPolyLines(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 4, 20, GetTime()*100, color);
+            DrawPolyLines(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 4, 20, GetTime()*100+(27*i), color);
             DrawCircleV(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 2, color);
 
             for (int j = 0; j < part.localNotches.size(); j++) {
                 Vector2& notch = part.localNotches[j];
                 DrawCircleLinesV(
-                    notch + (Vector2){part.bounds.x, part.bounds.y} + part.pivot,
+                    notch + (Vector2){part.bounds.x, part.bounds.y},
                     14+(j*2), color);
                 DrawCircleV(
-                    notch + (Vector2){part.bounds.x, part.bounds.y} + part.pivot,
+                    notch + (Vector2){part.bounds.x, part.bounds.y},
                     2, color
                 );
             }
@@ -150,7 +150,7 @@ int main() {
         EndDrawing();
     
     }
-    if (!partsAreValid) {
+    if (!partsAreValid || WindowShouldClose()) {
         UnloadTexture(texture);
         CloseWindow();
         return 0;
@@ -194,12 +194,13 @@ int main() {
         // Gizmos
         for (Part& part : parts) {
             for (int i = 0; i < part.localNotches.size(); i++) {
+                // Set notches world position
                 part.worldNotches[i] = rotateAround(
-                    part.localNotches[i] + part.position,
+                    part.localNotches[i] + part.position - part.pivot,
                     part.position,
                     part.worldRotation
                 );
-                DrawCircleGradient(part.worldNotches[i], 7*(i+1), TRANSPARENT, RED);
+                DrawCircleGradient(part.worldNotches[i], 6*(i+3), TRANSPARENT, RED);
             }
             DrawCircleGradient(part.position, 10, TRANSPARENT, BLUE);
         }
