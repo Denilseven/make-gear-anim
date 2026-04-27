@@ -131,7 +131,7 @@ int main() {
         DrawTexture(texture, 0, 0, BLACK);
         for (int i = 0; i < parts.size(); i++) {
             Part& part = parts[i];
-            Color color = debugColors[i%parts.size()];
+            Color color = debugColors[i%debugColors.size()];
 
             DrawRectangleLinesEx(part.bounds, 1, color);
 
@@ -151,6 +151,7 @@ int main() {
         }
         if (!partsAreValid)
             DrawText("Parts description file is invalid!", 10, 50, 20, RED);
+        DrawText("Enter (continue)", 10, texture.height - 30, 20, LIGHTGRAY);
         EndDrawing();
     }
     if (!partsAreValid || WindowShouldClose()) {
@@ -187,12 +188,9 @@ int main() {
         if (IsKeyDown(KEY_D))
             parts[selectedPart].localRotation += rotationSpeed * multiplier * dt;
 
-        BeginDrawing();
-        ClearBackground(DARKGRAY);
-
         for (int i = 0; i < parts.size(); i++) {
             Part& part = parts[i];
-
+            // Set parts world position
             if (part.parent != nullptr) {
                 if (part.connectedNotch == -1)
                     part.position = part.parent->position;
@@ -203,36 +201,41 @@ int main() {
             else {
                 part.worldRotation = part.localRotation;
             }
-            
+            // Set notches world position
+            for (int i = 0; i < part.localNotches.size(); i++) {
+                part.worldNotches[i] = rotateAround(
+                    part.localNotches[i] + part.position - part.pivot,
+                    part.position,
+                    part.worldRotation
+                );
+            }
+        }
+
+        BeginDrawing();
+        ClearBackground(DARKGRAY);
+
+        // Draw all parts
+        for (int i = 0; i < parts.size(); i++) {
+            Part& part = parts[i];
             DrawTexturePro(
                 texture,
                 part.bounds,
                 (Rectangle){part.position.x, part.position.y, part.bounds.width, part.bounds.height},
                 (Vector2){part.pivot.x, part.pivot.y},
                 part.worldRotation,
-                selectedPart == i ? LIGHTGRAY : WHITE
+                WHITE
             );
         }
-
-        // Draw pivot
-        for (int i = 0; i < parts.size(); i++) {
-            Part& part = parts[i];
-            DrawPoly(part.position, 5, 20, GetTime()*100 + 27*i, debugColors[i]);
-        }
-        // Draw notches
-        for (int i = 0; i < parts.size(); i++) {
-            Part& part = parts[i];
-            Color color = debugColors[i];
-            for (int i = 0; i < part.localNotches.size(); i++) {
-                // Set notches world position as well
-                part.worldNotches[i] = rotateAround(
-                    part.localNotches[i] + part.position - part.pivot,
-                    part.position,
-                    part.worldRotation
-                );
-                DrawCircle(part.worldNotches[i].x, part.worldNotches[i].y, 10, color);
-            }
-        }
+        // Draw selected part over everything
+        Part& part = parts[selectedPart];
+        DrawTexturePro(
+            texture,
+            part.bounds,
+            (Rectangle){part.position.x, part.position.y, part.bounds.width, part.bounds.height},
+            (Vector2){part.pivot.x, part.pivot.y},
+            part.worldRotation,
+            debugColors[selectedPart%debugColors.size()]
+        );
 
         EndMode2D();
 
@@ -240,12 +243,15 @@ int main() {
         DrawText(TextFormat("%.f", mouseWorldPos.x), 200, 10, 20, BLACK);
         DrawText(TextFormat("%.f", mouseWorldPos.y), 200, 30, 20, BLACK);
         
+        // Interface
         for (int i = 0; i < parts.size(); i++) {
             Part& part = parts[i];
-            Color color = debugColors[i];
-
-            // Interface
-            DrawText(TextFormat("%s", part.name.c_str()), 10, 10+(20*i), 20, selectedPart == i ? RED : WHITE);
+            // Parts list
+            DrawText(
+                TextFormat("%s", part.name.c_str()),
+                10, 10+(20*i), 20,
+                selectedPart == i ? debugColors[selectedPart%debugColors.size()] : WHITE
+            );
         }
         
         DrawText("Shift, A/D (rotate), T (set pos), W/S (select)", 10, WIN_HEIGHT - 30, 20, LIGHTGRAY);
