@@ -90,6 +90,10 @@ bool setFromFile(std::vector<Part>& list, const char* filename) {
         list[i].parent = getPartByName(list, parents[i]);
         // We set the parent pointers after the list is complete because setting
         // them while it is being built and resized seems to mess up everything.
+        if (list[i].parent == nullptr) {
+            list[i].position.x = WIN_WIDTH / 2;
+            list[i].position.y = WIN_HEIGHT / 2;
+        }
     }
     file.close();
     return true;
@@ -131,7 +135,7 @@ int main() {
 
             DrawRectangleLinesEx(part.bounds, 1, color);
 
-            DrawPolyLines(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 4, 20, GetTime()*100+(27*i), color);
+            DrawPolyLines(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 5, 20, GetTime()*100+(27*i), color);
             DrawCircleV(part.pivot + (Vector2){part.bounds.x, part.bounds.y}, 2, color);
 
             for (int j = 0; j < part.localNotches.size(); j++) {
@@ -148,7 +152,6 @@ int main() {
         if (!partsAreValid)
             DrawText("Parts description file is invalid!", 10, 50, 20, RED);
         EndDrawing();
-    
     }
     if (!partsAreValid || WindowShouldClose()) {
         UnloadTexture(texture);
@@ -158,18 +161,38 @@ int main() {
     CloseWindow();
 
     InitWindow(WIN_WIDTH, WIN_HEIGHT, "SECOND_WINDOW");
+
     texture = LoadTexture(TEXTURE_TO_LOAD);
+    int selectedPart{0};
+    float dt{0.0f};
+    float multiplier{1.0f};
+    const float rotationSpeed{100.0f};
+
     while(!WindowShouldClose()) {
+        dt = GetFrameTime();
+        multiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
+
+        if (IsKeyPressed(KEY_W)) {
+            selectedPart--;
+            if (selectedPart < 0)
+                selectedPart = parts.size() - 1;
+        }
+        if (IsKeyPressed(KEY_S))
+            selectedPart = ++selectedPart % parts.size();
+
+        if (IsKeyDown(KEY_T))
+            parts[selectedPart].position = GetMousePosition();
+        if (IsKeyDown(KEY_A))
+            parts[selectedPart].localRotation -= rotationSpeed * multiplier * dt;
+        if (IsKeyDown(KEY_D))
+            parts[selectedPart].localRotation += rotationSpeed * multiplier * dt;
+
         BeginDrawing();
-        ClearBackground(LIGHTGRAY);
+        ClearBackground(DARKGRAY);
 
-        // parts[0].scale = (Vector2){(float)GetMouseX() / 100.0f, (float)GetMouseY() / 100.0f};
-        parts[0].localRotation = GetTime() * 25;
-        parts[1].localRotation = GetTime() * -50;
-        parts[2].localRotation = GetTime() * 37;
-        parts[0].position = GetMousePosition();
+        for (int i = 0; i < parts.size(); i++) {
+            Part& part = parts[i];
 
-        for (Part& part : parts) {
             if (part.parent != nullptr) {
                 if (part.connectedNotch == -1)
                     part.position = part.parent->position;
@@ -187,22 +210,28 @@ int main() {
                 (Rectangle){part.position.x, part.position.y, part.bounds.width, part.bounds.height},
                 (Vector2){part.pivot.x, part.pivot.y},
                 part.worldRotation,
-                WHITE
+                selectedPart == i ? LIGHTGRAY : WHITE
             );
         }
 
-        // Gizmos
-        for (Part& part : parts) {
+        // Draw pivot
+        for (int i = 0; i < parts.size(); i++) {
+            Part& part = parts[i];
+            DrawPoly(part.position, 5, 20, GetTime()*100 + 27*i, debugColors[i]);
+        }
+        // Draw notches
+        for (int i = 0; i < parts.size(); i++) {
+            Part& part = parts[i];
+            Color color = debugColors[i];
             for (int i = 0; i < part.localNotches.size(); i++) {
-                // Set notches world position
+                // Set notches world position as well
                 part.worldNotches[i] = rotateAround(
                     part.localNotches[i] + part.position - part.pivot,
                     part.position,
                     part.worldRotation
                 );
-                DrawCircleGradient(part.worldNotches[i], 6*(i+3), TRANSPARENT, RED);
+                DrawCircle(part.worldNotches[i].x, part.worldNotches[i].y, 10, color);
             }
-            DrawCircleGradient(part.position, 10, TRANSPARENT, BLUE);
         }
 
         EndMode2D();
@@ -210,6 +239,16 @@ int main() {
         Vector2 mouseWorldPos = GetMousePosition();
         DrawText(TextFormat("%.f", mouseWorldPos.x), 200, 10, 20, BLACK);
         DrawText(TextFormat("%.f", mouseWorldPos.y), 200, 30, 20, BLACK);
+        
+        for (int i = 0; i < parts.size(); i++) {
+            Part& part = parts[i];
+            Color color = debugColors[i];
+
+            // Interface
+            DrawText(TextFormat("%s", part.name.c_str()), 10, 10+(20*i), 20, selectedPart == i ? RED : WHITE);
+        }
+        
+        DrawText("Shift, A/D (rotate), T (set pos), W/S (select)", 10, WIN_HEIGHT - 30, 20, LIGHTGRAY);
         
         EndDrawing();
     }
