@@ -1,3 +1,5 @@
+#include "common.hxx"
+#include "part.hxx"
 #include <fstream>
 #include <iostream>
 #include <raylib.h>
@@ -5,111 +7,17 @@
 #include <string>
 #include <vector>
 
-#define TEXTURE_TO_LOAD "assets/character_sprites.png"
-#define PARTS_DESCRIPTION_FILE "parts.txt"
-#define WIN_WIDTH 1000
-#define WIN_HEIGHT 1000
-#define TRANSPARENT (Color){255, 255, 255, 0}
-#define PHANTOM (Color){0, 255, 0, 120}
-
-struct Part {
-    std::string name{};
-    Rectangle bounds{};
-    Vector2 pivot{};
-
-    Part* parent{nullptr};
-    int connectedNotch{-1};
-
-    Vector2 position{};
-    float localRotation{0.0f};
-    float worldRotation{0.0f};
-    std::vector<Vector2> localNotches{};
-    std::vector<Vector2> worldNotches{};
-};
-
-Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees) {
-    float radians = degrees * (M_PI / 180);
-    Vector2 result = (Vector2){
-        result.x = (point.x-center.x)*std::cos(radians) - (point.y-center.y)*std::sin(radians),
-        result.y = (point.x-center.x)*std::sin(radians) + (point.y-center.y)*std::cos(radians)
-    };
-    return result + center;
-}
-
-Part* getPartByName(std::vector<Part>& list, const std::string name) {
-    for (int i = 0; i < list.size(); i++) {
-        if (list[i].name == name) {
-            return &list[i];
-        }
-    }
-    return nullptr;
-}
-
-bool setFromFile(std::vector<Part>& list, const char* filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "Error: Unable to open `" << PARTS_DESCRIPTION_FILE << "`!" << std::endl;
-        std::exit(1);
-    }
-
-    list.clear();
-
-    std::vector<std::string> parents{};
-    std::string s{};
-    while (getline(file, s)) {
-        if (s == "+") {
-            Part newPart{};
-
-            try {
-                getline(file, s); newPart.name = s;
-                getline(file, s); newPart.bounds.x = std::stoi(s);
-                getline(file, s); newPart.bounds.y = std::stoi(s);
-                getline(file, s); newPart.bounds.width = std::stoi(s);
-                getline(file, s); newPart.bounds.height = std::stoi(s);
-                getline(file, s); newPart.pivot.x = std::stoi(s);
-                getline(file, s); newPart.pivot.y = std::stoi(s);
-                getline(file, s); parents.push_back(s);
-                getline(file, s); newPart.connectedNotch = std::stoi(s);
-            
-                getline(file, s);
-                while (s == ".") {
-                    getline(file, s); int x = std::stoi(s);
-                    getline(file, s); int y = std::stoi(s);
-                    newPart.localNotches.push_back((Vector2){(float)x, (float)y});
-                    newPart.worldNotches.push_back((Vector2){(float)x, (float)y});
-                    getline(file, s);
-                }
-            }
-            catch (...) {
-                return false;
-            }
-            list.push_back(newPart);
-        }
-    }
-    for (int i = 0; i < list.size(); i++) {
-        list[i].parent = getPartByName(list, parents[i]);
-        // We set the parent pointers after the list is complete because setting
-        // them while it is being built and resized seems to mess up everything.
-        if (list[i].parent == nullptr) {
-            list[i].position.x = WIN_WIDTH / 2;
-            list[i].position.y = WIN_HEIGHT / 2;
-        }
-    }
-    file.close();
-    return true;
-}
-
 int main() {
-    SetTargetFPS(60);
     Texture2D texture = LoadTexture(TEXTURE_TO_LOAD);
 
     std::vector<Part> parts{};
     std::vector<Color> debugColors = {GOLD, PINK, GREEN, SKYBLUE, PURPLE};
 
     InitWindow(texture.width, texture.height, "FIRST_WINDOW");
+    SetTargetFPS(60);
 
     texture = LoadTexture(TEXTURE_TO_LOAD);
-    bool partsAreValid = setFromFile(parts, PARTS_DESCRIPTION_FILE);
+    bool partsAreValid = readPartsListFromFile(parts, PARTS_DESCRIPTION_FILE);
     float timer{0.0f}; // This `timer` thing could be improved but it's ok
 
     while (!WindowShouldClose() && !IsKeyDown(KEY_ENTER)) {
@@ -117,7 +25,7 @@ int main() {
         timer += GetFrameTime();
         if (timer >= 0.1f) {
             timer = 0.0f;
-            partsAreValid = setFromFile(parts, PARTS_DESCRIPTION_FILE);
+            partsAreValid = readPartsListFromFile(parts, PARTS_DESCRIPTION_FILE);
         }
 
         BeginDrawing();
@@ -162,6 +70,7 @@ int main() {
     CloseWindow();
 
     InitWindow(WIN_WIDTH, WIN_HEIGHT, "SECOND_WINDOW");
+    SetTargetFPS(60);
 
     texture = LoadTexture(TEXTURE_TO_LOAD);
     int selectedPart{0};
