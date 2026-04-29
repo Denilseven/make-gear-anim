@@ -1,5 +1,6 @@
 #include "common.hxx"
 #include "part.hxx"
+#include "pose.hxx"
 #include <fstream>
 #include <iostream>
 #include <raylib.h>
@@ -81,6 +82,10 @@ int main() {
     while(!WindowShouldClose()) {
         dt = GetFrameTime();
         multiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
+
+        // DEBUG
+        if (IsKeyPressed(KEY_ONE)) writePoseToFile(parts);
+        if (IsKeyPressed(KEY_TWO)) setPoseFromFile(parts);
 
         if (IsKeyPressed(KEY_W)) {
             selectedPart--;
