@@ -12,6 +12,9 @@
 int main() {
     Texture2D texture = LoadTexture(TEXTURE_TO_LOAD);
 
+    float editorTimer{0.0f};
+    float frameDuration{1.0f/12.0f}; // 12 fps animation
+
     std::vector<Part> parts{};
     std::vector<Color> debugColors = {GOLD, PINK, GREEN, SKYBLUE, PURPLE};
 
@@ -20,13 +23,12 @@ int main() {
 
     texture = LoadTexture(TEXTURE_TO_LOAD);
     bool partsAreValid = readPartsListFromFile(parts, PARTS_DESCRIPTION_FILE);
-    float timer{0.0f}; // This `timer` thing could be improved but it's ok
 
     while (!WindowShouldClose() && !IsKeyDown(KEY_ENTER)) {
         SetMouseCursor(3);
-        timer += GetFrameTime();
-        if (timer >= 0.1f) {
-            timer = 0.0f;
+        editorTimer += GetFrameTime();
+        if (editorTimer >= 0.1f) {
+            editorTimer = 0.0f;
             partsAreValid = readPartsListFromFile(parts, PARTS_DESCRIPTION_FILE);
         }
 
@@ -76,41 +78,52 @@ int main() {
 
     texture = LoadTexture(TEXTURE_TO_LOAD);
     int selectedPart{0};
+    int currentPose{0};
+    bool animationPlaying{false};
+
     float dt{0.0f};
-    float multiplier{1.0f};
+    float editorMultiplier{1.0f};
     const float rotationSpeed{100.0f};
+
     Sequence seq{};
+    seq.addPose(poseToString(parts));
 
     while(!WindowShouldClose()) {
         dt = GetFrameTime();
-        multiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
+        editorMultiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
 
         // DEBUG
         if (IsKeyPressed(KEY_ONE)) {
-            seq.poses.push_back(poseToString(parts));
+            seq.addPose(poseToString(parts));
         }
         if (IsKeyPressed(KEY_TWO)) {
-            for (int i = 0; i < seq.poses.size(); i++) {
-                std::cout << seq.poses[i] << std::endl;
-                setPoseFromString(parts, seq.poses[i]);
-            }
+            seq.setPose(poseToString(parts), currentPose);
         }
         if (IsKeyPressed(KEY_THREE)) randomizePose(parts);
+        if (IsKeyPressed(KEY_FOUR)) animationPlaying = !animationPlaying;
 
-        if (IsKeyPressed(KEY_W)) {
-            selectedPart--;
-            if (selectedPart < 0)
-                selectedPart = parts.size() - 1;
+        if (IsKeyPressed(KEY_LEFT)) { currentPose--; if (currentPose < 0) currentPose = seq.poses.size() - 1; }
+        if (IsKeyPressed(KEY_RIGHT)) currentPose = ++currentPose % seq.poses.size();
+
+        if (animationPlaying) {
+            editorTimer += GetFrameTime();
+            if (editorTimer >= frameDuration) {
+                editorTimer = 0.0f;
+                currentPose = ++currentPose % seq.poses.size();
+                setPoseFromString(parts, seq.poses[currentPose]);
+            }
         }
+
+        if (IsKeyPressed(KEY_W)) { selectedPart--; if (selectedPart < 0) selectedPart = parts.size() - 1; }
         if (IsKeyPressed(KEY_S))
             selectedPart = ++selectedPart % parts.size();
 
         if (IsKeyDown(KEY_T))
             parts[selectedPart].position = GetMousePosition();
         if (IsKeyDown(KEY_A))
-            parts[selectedPart].localRotation -= rotationSpeed * multiplier * dt;
+            parts[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt;
         if (IsKeyDown(KEY_D))
-            parts[selectedPart].localRotation += rotationSpeed * multiplier * dt;
+            parts[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt;
 
         for (int i = 0; i < parts.size(); i++) {
             Part& part = parts[i];
@@ -178,7 +191,19 @@ int main() {
             );
         }
         
-        DrawText("Shift, A/D (rotate), T (set pos), W/S (select)", 10, WIN_HEIGHT - 30, 20, LIGHTGRAY);
+        if (seq.poses.size() > 0) {
+            DrawRectangle(0, WIN_HEIGHT-10, WIN_WIDTH, 10, GRAY);
+            int a = WIN_WIDTH / seq.poses.size();
+            DrawRectangle(
+                a*currentPose, WIN_HEIGHT-20,
+                currentPose == seq.poses.size()-1 ? WIN_WIDTH: a, 20,
+                BLUE
+            );
+            DrawText(TextFormat("%d", currentPose), 10, WIN_HEIGHT-60, 40, BLUE);
+            DrawText(TextFormat("[%d]", seq.poses.size()), 60, WIN_HEIGHT-45, 20, GRAY);
+        }
+
+        // DrawText("Shift, A/D (rotate), T (set pos), W/S (select)", 10, WIN_HEIGHT - 30, 20, LIGHTGRAY);
         
         EndDrawing();
     }

@@ -13,4 +13,8 @@ struct Sequence {
         else
             poses.insert(poses.begin() + position, pose);
     }
+
+    void setPose(const std::string& pose, int position) {
+        poses[position] = pose;
+    }
 };
