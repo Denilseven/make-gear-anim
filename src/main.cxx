@@ -86,6 +86,7 @@ int main() {
         // DEBUG
         if (IsKeyPressed(KEY_ONE)) writePoseToFile(parts);
         if (IsKeyPressed(KEY_TWO)) setPoseFromFile(parts);
+        if (IsKeyPressed(KEY_THREE)) randomizePose(parts);
 
         if (IsKeyPressed(KEY_W)) {
             selectedPart--;
