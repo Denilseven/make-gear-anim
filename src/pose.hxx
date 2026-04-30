@@ -11,7 +11,6 @@
 
 std::string poseToString(std::vector<Part>& list) {
     std::string result{};
-    // result.append(">>>POSE\n");
     for (Part& part : list) {
         if (part.parent == nullptr) {
             // We only need to add position data if the part is root, else it's 0,0 anyways
@@ -25,7 +24,6 @@ std::string poseToString(std::vector<Part>& list) {
         result.append(std::to_string(part.localRotation));
         result.append("\n");
     }
-    // result.append(">>>\n");
     return result;
 }
 

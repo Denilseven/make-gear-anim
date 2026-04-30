@@ -1,6 +1,7 @@
 #include "common.hxx"
 #include "part.hxx"
 #include "pose.hxx"
+#include "sequence.hxx"
 #include <fstream>
 #include <iostream>
 #include <raylib.h>
@@ -78,14 +79,22 @@ int main() {
     float dt{0.0f};
     float multiplier{1.0f};
     const float rotationSpeed{100.0f};
+    Sequence seq{};
 
     while(!WindowShouldClose()) {
         dt = GetFrameTime();
         multiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
 
         // DEBUG
-        if (IsKeyPressed(KEY_ONE)) writePoseToFile(parts);
-        if (IsKeyPressed(KEY_TWO)) setPoseFromFile(parts);
+        if (IsKeyPressed(KEY_ONE)) {
+            seq.poses.push_back(poseToString(parts));
+        }
+        if (IsKeyPressed(KEY_TWO)) {
+            for (int i = 0; i < seq.poses.size(); i++) {
+                std::cout << seq.poses[i] << std::endl;
+                setPoseFromString(parts, seq.poses[i]);
+            }
+        }
         if (IsKeyPressed(KEY_THREE)) randomizePose(parts);
 
         if (IsKeyPressed(KEY_W)) {
