@@ -86,7 +86,9 @@ int main() {
     const float rotationSpeed{100.0f};
 
     Sequence seq{};
-    seq.addPose(poseToString(parts));
+    Pose pose{};
+    pose.readPose(parts);
+    seq.add(pose);
 
     while(!WindowShouldClose()) {
         dt = GetFrameTime();
@@ -94,13 +96,14 @@ int main() {
 
         // DEBUG
         if (IsKeyPressed(KEY_ONE)) {
-            seq.addPose(poseToString(parts));
+            pose.readPose(parts);
+            seq.add(pose);
         }
         if (IsKeyPressed(KEY_TWO)) {
-            seq.setPose(poseToString(parts), currentPose);
+            pose.readPose(parts);
+            seq.add(pose, currentPose);
         }
-        if (IsKeyPressed(KEY_THREE)) randomizePose(parts);
-        if (IsKeyPressed(KEY_FOUR)) animationPlaying = !animationPlaying;
+        if (IsKeyPressed(KEY_THREE)) animationPlaying = !animationPlaying;
 
         if (IsKeyPressed(KEY_LEFT)) { currentPose--; if (currentPose < 0) currentPose = seq.poses.size() - 1; }
         if (IsKeyPressed(KEY_RIGHT)) currentPose = ++currentPose % seq.poses.size();
@@ -110,7 +113,7 @@ int main() {
             if (editorTimer >= frameDuration) {
                 editorTimer = 0.0f;
                 currentPose = ++currentPose % seq.poses.size();
-                setPoseFromString(parts, seq.poses[currentPose]);
+                seq.poses[currentPose].setPose(parts);
             }
         }
 
