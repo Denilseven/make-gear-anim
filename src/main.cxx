@@ -88,7 +88,7 @@ int main() {
     Sequence seq{};
     Pose pose{};
     pose.readPose(parts);
-    seq.add(pose);
+    seq.addAt(pose);
 
     while(!WindowShouldClose()) {
         dt = GetFrameTime();
@@ -97,23 +97,23 @@ int main() {
         // DEBUG
         if (IsKeyPressed(KEY_ONE)) {
             pose.readPose(parts);
-            seq.add(pose);
+            seq.addAt(pose);
         }
         if (IsKeyPressed(KEY_TWO)) {
             pose.readPose(parts);
-            seq.add(pose, currentPose);
+            seq.addAt(pose, currentPose);
         }
         if (IsKeyPressed(KEY_THREE)) animationPlaying = !animationPlaying;
 
-        if (IsKeyPressed(KEY_LEFT)) { currentPose--; if (currentPose < 0) currentPose = seq.poses.size() - 1; }
-        if (IsKeyPressed(KEY_RIGHT)) currentPose = ++currentPose % seq.poses.size();
+        if (IsKeyPressed(KEY_LEFT)) { currentPose--; if (currentPose < 0) currentPose = seq.size() - 1; }
+        if (IsKeyPressed(KEY_RIGHT)) currentPose = ++currentPose % seq.size();
 
         if (animationPlaying) {
             editorTimer += GetFrameTime();
             if (editorTimer >= frameDuration) {
                 editorTimer = 0.0f;
-                currentPose = ++currentPose % seq.poses.size();
-                seq.poses[currentPose].setPose(parts);
+                currentPose = ++currentPose % seq.size();
+                seq.getAt(currentPose).setPose(parts);
             }
         }
 
@@ -194,16 +194,16 @@ int main() {
             );
         }
         
-        if (seq.poses.size() > 0) {
+        if (seq.size() > 0) {
             DrawRectangle(0, WIN_HEIGHT-10, WIN_WIDTH, 10, GRAY);
-            int a = WIN_WIDTH / seq.poses.size();
+            int a = WIN_WIDTH / seq.size();
             DrawRectangle(
                 a*currentPose, WIN_HEIGHT-20,
-                currentPose == seq.poses.size()-1 ? WIN_WIDTH: a, 20,
+                currentPose == seq.size()-1 ? WIN_WIDTH: a, 20,
                 BLUE
             );
             DrawText(TextFormat("%d", currentPose), 10, WIN_HEIGHT-60, 40, BLUE);
-            DrawText(TextFormat("[%d]", seq.poses.size()), 60, WIN_HEIGHT-45, 20, GRAY);
+            DrawText(TextFormat("[%d]", seq.size()), 60, WIN_HEIGHT-45, 20, GRAY);
         }
 
         // DrawText("Shift, A/D (rotate), T (set pos), W/S (select)", 10, WIN_HEIGHT - 30, 20, LIGHTGRAY);

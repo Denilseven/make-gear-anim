@@ -8,14 +8,22 @@
 struct Sequence {
     std::vector<Pose> poses{};
 
-    void add(const Pose& pose, int position=-1) {
+    void addAt(const Pose& pose, int position=-1) {
         if (position == -1)
             poses.push_back(pose);
         else
             poses.insert(poses.begin() + position, pose);
     }
 
-    void set(const Pose& pose, int position) {
+    void setAt(const Pose& pose, int position) {
         poses[position] = pose;
+    }
+
+    Pose& getAt(int position) {
+        return poses[position];
+    }
+
+    int size() {
+        return poses.size();
     }
 };
