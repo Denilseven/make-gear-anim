@@ -93,20 +93,53 @@ int main() {
 
     while(!WindowShouldClose()) {
         dt = GetFrameTime();
+
+        // Play or stop
+        if (IsKeyPressed(KEY_P)) {
+            seq.setAt(fig.getPose(), currentPose);
+            animationPlaying = !animationPlaying; editorTimer = 0.0f;
+        }
+        // Duplicate current frame
+        if (IsKeyPressed(KEY_ONE)) {
+            seq.setAt(fig.getPose(), currentPose);
+            seq.addAt(fig.getPose(), currentPose);
+            currentPose++;
+        }
+        // Delete current frame
+        if (IsKeyPressed(KEY_TWO) && seq.size() > 1) {
+            seq.removeAt(currentPose);
+            if (currentPose > 0) currentPose--;
+            fig.setPose(seq.getAt(currentPose));
+        }
+        // Go to the previous frame
+        if (IsKeyPressed(KEY_LEFT)) {
+            seq.setAt(fig.getPose(), currentPose);
+            currentPose--;
+            if (currentPose < 0)
+                currentPose = seq.size() - 1;
+            fig.setPose(seq.getAt(currentPose));
+        }
+        // Go to the next frame
+        if (IsKeyPressed(KEY_RIGHT)) {
+            seq.setAt(fig.getPose(), currentPose);
+            currentPose = ++currentPose % seq.size();
+            fig.setPose(seq.getAt(currentPose));
+        }
+
+        // Change current selected part
+        if (IsKeyPressed(KEY_W)) {
+            selectedPart--;
+            if (selectedPart < 0)
+                selectedPart = fig.size() - 1;
+        }
+        if (IsKeyPressed(KEY_S)) { selectedPart = ++selectedPart % fig.size(); }
+
         editorMultiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
-
-        if (IsKeyPressed(KEY_ONE)) { seq.addAt(fig.getPose()); }
-        if (IsKeyPressed(KEY_P)) { animationPlaying = !animationPlaying; editorTimer = 0.0f; }
-
-        if (IsKeyPressed(KEY_LEFT)) { currentPose--; if (currentPose < 0) currentPose = seq.size() - 1; }
-        if (IsKeyPressed(KEY_RIGHT)) currentPose = ++currentPose % seq.size();
-
-        if (IsKeyPressed(KEY_W)) { selectedPart--; if (selectedPart < 0) selectedPart = fig.size() - 1; }
-        if (IsKeyPressed(KEY_S)) selectedPart = ++selectedPart % fig.size();
-
-        if (IsKeyDown(KEY_T)) fig.parts[selectedPart].position = GetMousePosition();
-        if (IsKeyDown(KEY_A)) fig.parts[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt;
-        if (IsKeyDown(KEY_D)) fig.parts[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt;
+        // Change part rotation
+        if (IsKeyDown(KEY_A)) { fig.parts[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt; }
+        if (IsKeyDown(KEY_D)) { fig.parts[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt; }
+        // Change part position
+        if (IsKeyDown(KEY_T)) { fig.parts[selectedPart].position = GetMousePosition(); }
 
         if (animationPlaying) {
             editorTimer += GetFrameTime();

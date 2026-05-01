@@ -19,6 +19,10 @@ struct Sequence {
         poses[position] = pose;
     }
 
+    void removeAt(int position) {
+        poses.erase(poses.begin() + position);
+    }
+
     Pose& getAt(int position) {
         return poses[position];
     }
