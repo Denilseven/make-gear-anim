@@ -23,14 +23,14 @@ int main() {
     SetTargetFPS(60);
 
     texture = LoadTexture(TEXTURE_TO_LOAD);
-    bool partsAreValid = readPartsListFromFile(fig.parts, PARTS_DESCRIPTION_FILE);
+    bool partsAreValid = fig.readFromFile(PARTS_DESCRIPTION_FILE);
 
     while (!WindowShouldClose() && !IsKeyDown(KEY_ENTER)) {
         SetMouseCursor(3);
         editorTimer += GetFrameTime();
         if (editorTimer >= 0.1f) {
             editorTimer = 0.0f;
-            partsAreValid = readPartsListFromFile(fig.parts, PARTS_DESCRIPTION_FILE);
+            partsAreValid = fig.readFromFile(PARTS_DESCRIPTION_FILE);
         }
 
         BeginDrawing();
@@ -93,12 +93,18 @@ int main() {
         dt = GetFrameTime();
         editorMultiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
 
-        // DEBUG
         if (IsKeyPressed(KEY_ONE)) { seq.addAt(fig.getPose()); }
         if (IsKeyPressed(KEY_P)) { animationPlaying = !animationPlaying; editorTimer = 0.0f; }
 
         if (IsKeyPressed(KEY_LEFT)) { currentPose--; if (currentPose < 0) currentPose = seq.size() - 1; }
         if (IsKeyPressed(KEY_RIGHT)) currentPose = ++currentPose % seq.size();
+
+        if (IsKeyPressed(KEY_W)) { selectedPart--; if (selectedPart < 0) selectedPart = fig.size() - 1; }
+        if (IsKeyPressed(KEY_S)) selectedPart = ++selectedPart % fig.size();
+
+        if (IsKeyDown(KEY_T)) fig.parts[selectedPart].position = GetMousePosition();
+        if (IsKeyDown(KEY_A)) fig.parts[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt;
+        if (IsKeyDown(KEY_D)) fig.parts[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt;
 
         if (animationPlaying) {
             editorTimer += GetFrameTime();
@@ -109,55 +115,19 @@ int main() {
             }
         }
 
-        if (IsKeyPressed(KEY_W)) { selectedPart--; if (selectedPart < 0) selectedPart = fig.size() - 1; }
-        if (IsKeyPressed(KEY_S))
-            selectedPart = ++selectedPart % fig.size();
-
-        if (IsKeyDown(KEY_T))
-            fig.parts[selectedPart].position = GetMousePosition();
-        if (IsKeyDown(KEY_A))
-            fig.parts[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt;
-        if (IsKeyDown(KEY_D))
-            fig.parts[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt;
-
         fig.update();
 
         BeginDrawing();
         ClearBackground(DARKGRAY);
-
-        // Draw all parts
-        for (int i = 0; i < fig.size(); i++) {
-            Part& part = fig.parts[i];
-            DrawTexturePro(
-                texture,
-                part.bounds,
-                (Rectangle){part.position.x, part.position.y, part.bounds.width, part.bounds.height},
-                (Vector2){part.pivot.x, part.pivot.y},
-                part.worldRotation,
-                WHITE
-            );
-        }
-        // Draw selected part over everything
-        Part& part = fig.parts[selectedPart];
-        DrawTexturePro(
-            texture,
-            part.bounds,
-            (Rectangle){part.position.x, part.position.y, part.bounds.width, part.bounds.height},
-            (Vector2){part.pivot.x, part.pivot.y},
-            part.worldRotation,
-            debugColors[selectedPart%debugColors.size()]
-        );
-
-        EndMode2D();
-
-        Vector2 mouseWorldPos = GetMousePosition();
-        DrawText(TextFormat("%.f", mouseWorldPos.x), 200, 10, 20, BLACK);
-        DrawText(TextFormat("%.f", mouseWorldPos.y), 200, 30, 20, BLACK);
         
-        // Interface
+        // Draw all parts
+        fig.draw(texture, WHITE);
+        // Draw selected part over everything
+        fig.parts[selectedPart].draw(texture, debugColors[selectedPart%debugColors.size()]);
+
+        // Draw parts list
         for (int i = 0; i < fig.size(); i++) {
             Part& part = fig.parts[i];
-            // Parts list
             DrawText(
                 TextFormat("%s", part.name.c_str()),
                 10, 10+(20*i), 20,
@@ -165,6 +135,7 @@ int main() {
             );
         }
         
+        // Draw timeline
         if (seq.size() > 0) {
             DrawRectangle(0, WIN_HEIGHT-10, WIN_WIDTH, 10, GRAY);
             int a = WIN_WIDTH / seq.size();
@@ -176,8 +147,6 @@ int main() {
             DrawText(TextFormat("%d", currentPose), 10, WIN_HEIGHT-60, 40, BLUE);
             DrawText(TextFormat("[%d]", seq.size()), 60, WIN_HEIGHT-45, 20, GRAY);
         }
-
-        // DrawText("Shift, A/D (rotate), T (set pos), W/S (select)", 10, WIN_HEIGHT - 30, 20, LIGHTGRAY);
         
         EndDrawing();
     }
