@@ -17,6 +17,7 @@ int main() {
     float frameDuration{1.0f/12.0f}; // 12 fps animation
 
     Figure fig{};
+    Figure dummy{};
     std::vector<Color> debugColors = {GOLD, PINK, GREEN, SKYBLUE, PURPLE};
 
     InitWindow(texture.width, texture.height, "FIRST_WINDOW");
@@ -77,6 +78,7 @@ int main() {
     InitWindow(WIN_WIDTH, WIN_HEIGHT, "SECOND_WINDOW");
     SetTargetFPS(60);
 
+    dummy.readFromFile(PARTS_DESCRIPTION_FILE);
     texture = LoadTexture(TEXTURE_TO_LOAD);
     int selectedPart{0};
     int currentPose{0};
@@ -119,6 +121,15 @@ int main() {
 
         BeginDrawing();
         ClearBackground(DARKGRAY);
+        
+        // Onion-skinning
+        for (int i = 0; i < seq.size(); i++) {
+            if (i == currentPose) continue;
+            Color color = i < currentPose ? SPECTRE : MELLOWS;
+            dummy.setPose(seq.poses[i]);
+            dummy.update();
+            dummy.draw(texture, color);
+        }
         
         // Draw all parts
         fig.draw(texture, WHITE);
