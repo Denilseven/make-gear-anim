@@ -1,4 +1,5 @@
 #include "common.hxx"
+#include "figure.hxx"
 #include "part.hxx"
 #include "pose.hxx"
 #include "sequence.hxx"
@@ -15,21 +16,21 @@ int main() {
     float editorTimer{0.0f};
     float frameDuration{1.0f/12.0f}; // 12 fps animation
 
-    std::vector<Part> parts{};
+    Figure fig{};
     std::vector<Color> debugColors = {GOLD, PINK, GREEN, SKYBLUE, PURPLE};
 
     InitWindow(texture.width, texture.height, "FIRST_WINDOW");
     SetTargetFPS(60);
 
     texture = LoadTexture(TEXTURE_TO_LOAD);
-    bool partsAreValid = readPartsListFromFile(parts, PARTS_DESCRIPTION_FILE);
+    bool partsAreValid = readPartsListFromFile(fig.parts, PARTS_DESCRIPTION_FILE);
 
     while (!WindowShouldClose() && !IsKeyDown(KEY_ENTER)) {
         SetMouseCursor(3);
         editorTimer += GetFrameTime();
         if (editorTimer >= 0.1f) {
             editorTimer = 0.0f;
-            partsAreValid = readPartsListFromFile(parts, PARTS_DESCRIPTION_FILE);
+            partsAreValid = readPartsListFromFile(fig.parts, PARTS_DESCRIPTION_FILE);
         }
 
         BeginDrawing();
@@ -41,8 +42,8 @@ int main() {
         DrawText(TextFormat("%.f\n%.f", mousePos.x, mousePos.y), 10, 10, 20, LIGHTGRAY);
 
         DrawTexture(texture, 0, 0, BLACK);
-        for (int i = 0; i < parts.size(); i++) {
-            Part& part = parts[i];
+        for (int i = 0; i < fig.size(); i++) {
+            Part& part = fig.parts[i];
             Color color = debugColors[i%debugColors.size()];
 
             DrawRectangleLinesEx(part.bounds, 1, color);
@@ -86,24 +87,15 @@ int main() {
     const float rotationSpeed{100.0f};
 
     Sequence seq{};
-    Pose pose{};
-    pose.readPose(parts);
-    seq.addAt(pose);
+    seq.addAt(fig.getPose());
 
     while(!WindowShouldClose()) {
         dt = GetFrameTime();
         editorMultiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
 
         // DEBUG
-        if (IsKeyPressed(KEY_ONE)) {
-            pose.readPose(parts);
-            seq.addAt(pose);
-        }
-        if (IsKeyPressed(KEY_TWO)) {
-            pose.readPose(parts);
-            seq.addAt(pose, currentPose);
-        }
-        if (IsKeyPressed(KEY_THREE)) animationPlaying = !animationPlaying;
+        if (IsKeyPressed(KEY_ONE)) { seq.addAt(fig.getPose()); }
+        if (IsKeyPressed(KEY_P)) { animationPlaying = !animationPlaying; editorTimer = 0.0f; }
 
         if (IsKeyPressed(KEY_LEFT)) { currentPose--; if (currentPose < 0) currentPose = seq.size() - 1; }
         if (IsKeyPressed(KEY_RIGHT)) currentPose = ++currentPose % seq.size();
@@ -113,50 +105,29 @@ int main() {
             if (editorTimer >= frameDuration) {
                 editorTimer = 0.0f;
                 currentPose = ++currentPose % seq.size();
-                seq.getAt(currentPose).setPose(parts);
+                fig.setPose(seq.getAt(currentPose));
             }
         }
 
-        if (IsKeyPressed(KEY_W)) { selectedPart--; if (selectedPart < 0) selectedPart = parts.size() - 1; }
+        if (IsKeyPressed(KEY_W)) { selectedPart--; if (selectedPart < 0) selectedPart = fig.size() - 1; }
         if (IsKeyPressed(KEY_S))
-            selectedPart = ++selectedPart % parts.size();
+            selectedPart = ++selectedPart % fig.size();
 
         if (IsKeyDown(KEY_T))
-            parts[selectedPart].position = GetMousePosition();
+            fig.parts[selectedPart].position = GetMousePosition();
         if (IsKeyDown(KEY_A))
-            parts[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt;
+            fig.parts[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt;
         if (IsKeyDown(KEY_D))
-            parts[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt;
+            fig.parts[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt;
 
-        for (int i = 0; i < parts.size(); i++) {
-            Part& part = parts[i];
-            // Set parts world position
-            if (part.parent != nullptr) {
-                if (part.connectedNotch == -1)
-                    part.position = part.parent->position;
-                else
-                    part.position = part.parent->worldNotches[part.connectedNotch];
-                part.worldRotation = part.localRotation + part.parent->worldRotation;
-            }
-            else {
-                part.worldRotation = part.localRotation;
-            }
-            // Set notches world position
-            for (int i = 0; i < part.localNotches.size(); i++) {
-                part.worldNotches[i] = rotateAround(
-                    part.localNotches[i] + part.position - part.pivot,
-                    part.position,
-                    part.worldRotation
-                );
-            }
-        }
+        fig.update();
 
         BeginDrawing();
         ClearBackground(DARKGRAY);
 
         // Draw all parts
-        for (int i = 0; i < parts.size(); i++) {
-            Part& part = parts[i];
+        for (int i = 0; i < fig.size(); i++) {
+            Part& part = fig.parts[i];
             DrawTexturePro(
                 texture,
                 part.bounds,
@@ -167,7 +138,7 @@ int main() {
             );
         }
         // Draw selected part over everything
-        Part& part = parts[selectedPart];
+        Part& part = fig.parts[selectedPart];
         DrawTexturePro(
             texture,
             part.bounds,
@@ -184,8 +155,8 @@ int main() {
         DrawText(TextFormat("%.f", mouseWorldPos.y), 200, 30, 20, BLACK);
         
         // Interface
-        for (int i = 0; i < parts.size(); i++) {
-            Part& part = parts[i];
+        for (int i = 0; i < fig.size(); i++) {
+            Part& part = fig.parts[i];
             // Parts list
             DrawText(
                 TextFormat("%s", part.name.c_str()),
