@@ -82,6 +82,7 @@ int main() {
     texture = LoadTexture(TEXTURE_TO_LOAD);
     int selectedPart{0};
     int currentPose{0};
+    int onionMode{2};
     bool animationPlaying{false};
 
     float dt{0.0f};
@@ -134,6 +135,10 @@ int main() {
         }
         if (IsKeyPressed(KEY_S)) { selectedPart = ++selectedPart % fig.size(); }
 
+        // Change onion mode
+        // WARNING: magic number!
+        if (IsKeyPressed(KEY_O)) { onionMode = ++onionMode % 3; }
+
         editorMultiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
         // Change part rotation
         if (IsKeyDown(KEY_A)) { fig.parts[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt; }
@@ -156,12 +161,27 @@ int main() {
         ClearBackground(DARKGRAY);
         
         // Onion-skinning
-        for (int i = 0; i < seq.size(); i++) {
-            if (i == currentPose) continue;
-            Color color = i < currentPose ? SPECTRE : MELLOWS;
-            dummy.setPose(seq.poses[i]);
-            dummy.update();
-            dummy.draw(texture, color);
+        if (seq.size() > 1) {
+            if (onionMode == 1) {
+                // "Adjacent poses only"
+                if (currentPose != 0) dummy.setPose(seq.poses[currentPose-1]);
+                else dummy.setPose(seq.poses[seq.size()-1]);
+                dummy.update();
+                dummy.draw(texture, SPECTRE);
+                if (currentPose < seq.size()-1) dummy.setPose(seq.poses[currentPose+1]);
+                else dummy.setPose(seq.poses[0]);
+                dummy.update();
+                dummy.draw(texture, MELLOWS);
+            }
+            else if (onionMode == 2) {
+                // "All poses"
+                for (int i = 0; i < seq.size(); i++) {
+                    if (i == currentPose) continue;
+                    dummy.setPose(seq.poses[i]);
+                    dummy.update();
+                    dummy.draw(texture, PHANTOM);
+                }
+            }
         }
         
         // Draw all parts
