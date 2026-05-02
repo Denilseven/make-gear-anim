@@ -1,6 +1,7 @@
 #include "common.hxx"
 #include "figure.hxx"
 #include "part.hxx"
+#include "persistenceManager.hxx"
 #include "pose.hxx"
 #include "sequence.hxx"
 #include <fstream>
@@ -95,14 +96,23 @@ int main() {
     while(!WindowShouldClose()) {
         dt = GetFrameTime();
 
+        // Save current animation sequence
+        if (IsKeyPressed(KEY_FIVE)) {
+            PersistenceManager::save(seq, "test.mgaseq");
+        }
+        // Load animation sequence
+        if (IsKeyPressed(KEY_SIX)) {
+            PersistenceManager::setSequenceFromFile(seq, "test.mgaseq");
+            currentPose = 0;
+            fig.setPose(seq.getAt(currentPose));
+        }
+
         // Play or stop
         if (IsKeyPressed(KEY_P)) {
-            seq.setAt(fig.getPose(), currentPose);
             animationPlaying = !animationPlaying; editorTimer = 0.0f;
         }
         // Duplicate current frame
         if (IsKeyPressed(KEY_ONE)) {
-            seq.setAt(fig.getPose(), currentPose);
             seq.addAt(fig.getPose(), currentPose);
             currentPose++;
         }
@@ -114,7 +124,6 @@ int main() {
         }
         // Go to the previous frame
         if (IsKeyPressed(KEY_LEFT)) {
-            seq.setAt(fig.getPose(), currentPose);
             currentPose--;
             if (currentPose < 0)
                 currentPose = seq.size() - 1;
@@ -122,7 +131,6 @@ int main() {
         }
         // Go to the next frame
         if (IsKeyPressed(KEY_RIGHT)) {
-            seq.setAt(fig.getPose(), currentPose);
             currentPose = ++currentPose % seq.size();
             fig.setPose(seq.getAt(currentPose));
         }
@@ -153,6 +161,11 @@ int main() {
                 currentPose = ++currentPose % seq.size();
                 fig.setPose(seq.getAt(currentPose));
             }
+        }
+        else {
+            // We're saving the position on every frame rather than when there's a change to it
+            // I don't know yet how much that affects performance but we'll roll with this for now
+            seq.setAt(fig.getPose(), currentPose);
         }
 
         fig.update();
