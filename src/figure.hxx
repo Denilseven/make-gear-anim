@@ -59,7 +59,7 @@ struct Figure {
     bool readFromFile(const char* filename) {
         std::ifstream file(filename);
         if (!file.is_open()) {
-            std::cerr << "Error: Unable to open `" << PARTS_DESCRIPTION_FILE << "`!" << std::endl;
+            std::cerr << "Error: Unable to open `" << filename << "`!" << std::endl;
             std::exit(1);
         }
 

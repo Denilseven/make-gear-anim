@@ -11,8 +11,28 @@
 #include <string>
 #include <vector>
 
-int main() {
-    Texture2D texture = LoadTexture(TEXTURE_TO_LOAD);
+int main(int argc, char* argv[]) {
+    // Read given arguments
+    for (int i = 0; i < argc-1; i++) {
+        if (std::string_view(argv[i]) == "-t")
+            textureFilename = argv[++i];
+        else if (std::string_view(argv[i]) == "-p")
+            partsFilename = argv[++i];
+        else if (std::string_view(argv[i]) == "-s")
+            sequenceFilename = argv[++i];
+        else if (i > 0) {
+            std::cerr << "Error: Invalid argument given, `" << argv[i] << "`" << std::endl;
+            return 1;
+        }
+    }
+
+    Texture texture = LoadTexture(textureFilename);
+    if (texture.width <= 0) {
+        std::cerr << "Error: Failed to load `" << textureFilename << "` or it's an invalid file for a texture." << std::endl;
+        UnloadTexture(texture);
+        CloseWindow();
+        return 1;
+    }
 
     float editorTimer{0.0f};
     float frameDuration{1.0f/12.0f}; // 12 fps animation
@@ -24,15 +44,15 @@ int main() {
     InitWindow(texture.width, texture.height, "FIRST_WINDOW");
     SetTargetFPS(60);
 
-    texture = LoadTexture(TEXTURE_TO_LOAD);
-    bool partsAreValid = fig.readFromFile(PARTS_DESCRIPTION_FILE);
+    texture = LoadTexture(textureFilename);
+    bool partsAreValid = fig.readFromFile(partsFilename);
 
     while (!WindowShouldClose() && !IsKeyDown(KEY_ENTER)) {
         SetMouseCursor(3);
         editorTimer += GetFrameTime();
         if (editorTimer >= 0.1f) {
             editorTimer = 0.0f;
-            partsAreValid = fig.readFromFile(PARTS_DESCRIPTION_FILE);
+            partsAreValid = fig.readFromFile(partsFilename);
         }
 
         BeginDrawing();
@@ -72,15 +92,15 @@ int main() {
     if (!partsAreValid || WindowShouldClose()) {
         UnloadTexture(texture);
         CloseWindow();
-        return 0;
+        return partsAreValid ? 0 : 1;
     }
     CloseWindow();
 
     InitWindow(WIN_WIDTH, WIN_HEIGHT, "SECOND_WINDOW");
     SetTargetFPS(60);
 
-    dummy.readFromFile(PARTS_DESCRIPTION_FILE);
-    texture = LoadTexture(TEXTURE_TO_LOAD);
+    dummy.readFromFile(partsFilename);
+    texture = LoadTexture(textureFilename);
     int selectedPart{0};
     int currentPose{0};
     int onionMode{2};
@@ -92,17 +112,21 @@ int main() {
 
     Sequence seq{};
     seq.addAt(fig.getPose());
+    // If possible, load in the given sequence, if not, continue with empty
+    PersistenceManager::setSequenceFromFile(seq, sequenceFilename);
+    currentPose = 0;
+    fig.setPose(seq.getAt(currentPose));
 
     while(!WindowShouldClose()) {
         dt = GetFrameTime();
 
         // Save current animation sequence
         if (IsKeyPressed(KEY_FIVE)) {
-            PersistenceManager::save(seq, "test.mgaseq");
+            PersistenceManager::save(seq, sequenceFilename);
         }
         // Load animation sequence
         if (IsKeyPressed(KEY_SIX)) {
-            PersistenceManager::setSequenceFromFile(seq, "test.mgaseq");
+            PersistenceManager::setSequenceFromFile(seq, sequenceFilename);
             currentPose = 0;
             fig.setPose(seq.getAt(currentPose));
         }

@@ -4,3 +4,6 @@ tags
 .vscode/
 build/
 assets/
+/*.png
+/*.parts
+/*.sequence

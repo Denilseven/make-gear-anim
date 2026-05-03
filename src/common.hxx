@@ -3,8 +3,9 @@
 #include <raylib.h>
 #include <raymath.h>
 
-#define TEXTURE_TO_LOAD "assets/character_sprites.png"
-#define PARTS_DESCRIPTION_FILE "parts.txt"
+const char* textureFilename{"texture.png"};
+const char* partsFilename{"character.parts"};
+const char* sequenceFilename{"default.sequence"};
 
 #define WIN_WIDTH 1000
 #define WIN_HEIGHT 1000

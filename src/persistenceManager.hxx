@@ -29,17 +29,18 @@ struct PersistenceManager {
         }
         file << stream.rdbuf();
 
+        std::cout << "Success: Saved sequence to file `" << filename << "`" << std::endl;
         return true;
     }
 
     static bool setSequenceFromFile(Sequence& sequence, std::string filename) {
-        sequence.poses.clear();
-
         std::ifstream file(filename);
         if (!file.is_open()) {
-            std::cerr << "Error: Unable to open `" << filename << "` to read pose!" << std::endl;
+            std::cerr << "Error: Unable to open `" << filename << "` to read sequence!" << std::endl;
             return false;
         }
+
+        sequence.poses.clear();
 
         Pose newPose{};
         std::string name{};
@@ -69,6 +70,7 @@ struct PersistenceManager {
                 catch (...) { return false; }
             }
         }
+        std::cout << "Success: Loaded in sequence from file `" << filename << "`" << std::endl;
         return true;
     }
 };
