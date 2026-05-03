@@ -112,6 +112,7 @@ int main(int argc, char* argv[]) {
     int selectedPart{0};
     int currentPose{0};
     int onionMode{2};
+    int gridSpace{-1};
     bool animationPlaying{false};
 
     float dt{0.0f};
@@ -179,6 +180,17 @@ int main(int argc, char* argv[]) {
         // WARNING: magic number!
         if (IsKeyPressed(KEY_O)) { onionMode = ++onionMode % 3; }
 
+        // Change grids
+        // WARNING: many magic numbers!!!
+        if (IsKeyPressed(KEY_G)) {
+            if (gridSpace == -1)
+                gridSpace = 250;
+            else if (gridSpace == 250)
+                gridSpace = 125;
+            else
+                gridSpace = -1;
+        }
+
         editorMultiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
         // Change part rotation
         if (IsKeyDown(KEY_A)) { fig.parts[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt; }
@@ -229,6 +241,14 @@ int main(int argc, char* argv[]) {
             }
         }
         
+        // Draw grid
+        if (gridSpace != -1) {
+            for (int i = 0; i < WIN_WIDTH; i+=gridSpace)
+                DrawLine(i, 0, i, WIN_HEIGHT, BLACK);
+            for (int i = 0; i < WIN_HEIGHT; i+=gridSpace)
+                DrawLine(0, i, WIN_WIDTH, i, BLACK);
+        }
+
         // Draw all parts
         fig.draw(texture, WHITE);
         // Draw selected part over everything
