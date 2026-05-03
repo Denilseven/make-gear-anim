@@ -13,15 +13,23 @@
 
 int main(int argc, char* argv[]) {
     // Read given arguments
-    for (int i = 0; i < argc-1; i++) {
-        if (std::string_view(argv[i]) == "-t")
+    for (int i = 0; i < argc; i++) {
+        if (std::string_view(argv[i]) == "-h") {
+            printHelp();
+            return 1;
+        }
+        else if (std::string_view(argv[i]) == "-t") {
             textureFilename = argv[++i];
-        else if (std::string_view(argv[i]) == "-p")
+        }
+        else if (std::string_view(argv[i]) == "-p") {
             partsFilename = argv[++i];
-        else if (std::string_view(argv[i]) == "-s")
+        }
+        else if (std::string_view(argv[i]) == "-s") {
             sequenceFilename = argv[++i];
+        }
         else if (i > 0) {
             std::cerr << "Error: Invalid argument given, `" << argv[i] << "`" << std::endl;
+            printHelp();
             return 1;
         }
     }

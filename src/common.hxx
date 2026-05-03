@@ -1,11 +1,16 @@
 #pragma once
 
+#include <iostream>
 #include <raylib.h>
 #include <raymath.h>
 
-const char* textureFilename{"texture.png"};
-const char* partsFilename{"character.parts"};
-const char* sequenceFilename{"default.sequence"};
+#define DEFAULT_TEXTURE_FILENAME "texture.png"
+#define DEFAULT_PARTS_FILENAME "character.parts"
+#define DEFAULT_SEQUENCE_FILENAME "default.sequence"
+
+const char* textureFilename{DEFAULT_TEXTURE_FILENAME};
+const char* partsFilename{DEFAULT_PARTS_FILENAME};
+const char* sequenceFilename{DEFAULT_SEQUENCE_FILENAME};
 
 #define WIN_WIDTH 1000
 #define WIN_HEIGHT 1000
@@ -22,4 +27,16 @@ Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees)
         result.y = (point.x-center.x)*std::sin(radians) + (point.y-center.y)*std::cos(radians)
     };
     return result + center;
+}
+
+void printHelp() {
+    std::cout << "\n";
+    std::cout << "(arguments help)\n\n";
+    std::cout << "-t filename.png" << "\n\tsets the texture\n";
+    std::cout << "\t(default is `" << DEFAULT_TEXTURE_FILENAME <<"`)\n";
+    std::cout << "-p filename.parts" << "\n\tsets the parts data file (basically the \"model\")\n";
+    std::cout << "\t(default is `" << DEFAULT_PARTS_FILENAME <<"`)\n";
+    std::cout << "-s filename.sequence" << "\n\tsets the sequence file (basically the \"animation\")\n";
+    std::cout << "\t(default is `" << DEFAULT_SEQUENCE_FILENAME <<"`)\n";
+    std::cout << std::endl;
 }
