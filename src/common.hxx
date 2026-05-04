@@ -43,5 +43,7 @@ void printHelp() {
     std::cout << "\t(default is `" << DEFAULT_SEQUENCE_FILENAME <<"`)\n";
     std::cout << "[-z | --zoom] 0.5" << "\n\tsets the zoom level for the camera\n";
     std::cout << "\t(default is `" << DEFAULT_CAMERA_ZOOM_LEVEL <<"`)\n";
+    std::cout << "[-r | --rect] 300 800" << "\n\tsets the size of a reference rectangle\n";
+    std::cout << "\t(it gets added as a grid option; default is none)\n";
     std::cout << std::endl;
 }

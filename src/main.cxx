@@ -37,6 +37,10 @@ int main(int argc, char* argv[]) {
             else if (arg == "-z" || arg == "--zoom") {
                 cameraZoomLevel = std::stof(argv[++i]);
             }
+            else if (arg == "-r" || arg == "--rect") {
+                referenceRectangle.x = std::stof(argv[++i]);
+                referenceRectangle.y = std::stof(argv[++i]);
+            }
             else if (i > 0) {
                 std::cerr << "Error: Invalid argument given, `" << argv[i] << "`" << std::endl;
                 printHelp();
@@ -257,11 +261,20 @@ int main(int argc, char* argv[]) {
                     }
 
                     // Draw grid
-                    if (gridSpace != 0.0f) {
+                    if (gridMode == GridMode::grid) {
                         for (float i = 0; i <= WIN_WIDTH; i+=gridSpace)
                             DrawLine(i, 0, i, WIN_HEIGHT, BLACK);
                         for (float i = 0; i <= WIN_HEIGHT; i+=gridSpace)
                             DrawLine(0, i, WIN_WIDTH, i, BLACK);
+                    }
+                    else if (gridMode == GridMode::rect) {
+                        DrawRectangleLines(
+                            (WIN_WIDTH / 2) - (referenceRectangle.x / 2),
+                            (WIN_HEIGHT / 2) - (referenceRectangle.y / 2),
+                            referenceRectangle.x,
+                            referenceRectangle.y,
+                            BLACK
+                        );
                     }
 
                     // Draw all parts
