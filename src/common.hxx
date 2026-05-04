@@ -3,6 +3,7 @@
 #include <iostream>
 #include <raylib.h>
 #include <raymath.h>
+#include <vector>
 
 #define DEFAULT_TEXTURE_FILENAME "texture.png"
 #define DEFAULT_PARTS_FILENAME "character.parts"
@@ -15,10 +16,10 @@ const char* sequenceFilename{DEFAULT_SEQUENCE_FILENAME};
 #define WIN_WIDTH 1000
 #define WIN_HEIGHT 1000
 
-#define TRANSPARENT (Color){255, 255, 255, 0}
 #define SPECTRE (Color){255, 0, 0, 100}
 #define PHANTOM (Color){0, 255, 0, 100}
 #define MELLOWS (Color){0, 0, 255, 100}
+const std::vector<Color> debugColors = {GOLD, PINK, GREEN, SKYBLUE, PURPLE};
 
 Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees) {
     float radians = degrees * (M_PI / 180);
