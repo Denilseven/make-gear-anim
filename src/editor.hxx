@@ -1,17 +1,18 @@
 #pragma once
 
-#define EDITOR_MODE_COUNT 2
 enum EditorMode : int {
     rotate,
     translate,
+    playing,
 };
+#define DEFAULT_EDITOR_MODE EditorMode::rotate
 
-#define ONION_MODE_COUNT 3
 enum OnionMode : int {
     none = 0,
     adjacent = 1,
     all = 2,
 };
+#define ONION_MODE_COUNT 3
 
 OnionMode onionMode{OnionMode::all};
 EditorMode editorMode{EditorMode::rotate};
@@ -24,8 +25,6 @@ float editorMultiplier{1.0f};
 float frameDuration{1.0f/12.0f}; // 12 fps animation
 float editorTimer{0.0f};
 float gridSpace{0.0f};
-
-bool animationPlaying{false};
 
 // WARNING: many magic numbers!!!
 void cycleGridSpace() {
@@ -40,7 +39,12 @@ void cycleGridSpace() {
 }
 
 void cycleEditorMode() {
-    editorMode = (EditorMode)(((int)editorMode+1) % EDITOR_MODE_COUNT);
+    if (editorMode == EditorMode::rotate)
+        editorMode = EditorMode::translate;
+    else if (editorMode == EditorMode::translate)
+        editorMode = EditorMode::rotate;
+    else
+        editorMode = DEFAULT_EDITOR_MODE;
 }
 
 void cycleOnionMode() {

@@ -141,8 +141,17 @@ int main(int argc, char* argv[]) {
         while(!WindowShouldClose()) {
             dt = GetFrameTime();
 
-            // Inputs
+            // General controls
             {
+                // Play or stop
+                if (IsKeyPressed(KEY_P)) {
+                    editorMode = editorMode == EditorMode::playing ? DEFAULT_EDITOR_MODE : EditorMode::playing;
+                    editorTimer = 0.0f;
+                }
+                if (IsKeyPressed(KEY_O)) { cycleOnionMode(); }
+                if (IsKeyPressed(KEY_G)) { cycleGridSpace(); }
+                if (IsKeyPressed(KEY_T)) { cycleEditorMode(); }
+
                 // Save current animation sequence
                 if (IsKeyPressed(KEY_FIVE)) {
                     writeSequenceToFile(seq, sequenceFilename);
@@ -154,10 +163,18 @@ int main(int argc, char* argv[]) {
                     fig.setPose(seq.getAt(currentPose));
                 }
 
-                // Play or stop
-                if (IsKeyPressed(KEY_P)) {
-                    animationPlaying = !animationPlaying; editorTimer = 0.0f;
+                // Change currently selected part
+                if (IsKeyPressed(KEY_UP)) {
+                    selectedPart--;
+                    if (selectedPart < 0)
+                        selectedPart = fig.size() - 1;
                 }
+                if (IsKeyPressed(KEY_DOWN)) { selectedPart = ++selectedPart % fig.size(); }
+
+            }
+
+            // Editor controls
+            if (editorMode != EditorMode::playing) {
                 // Duplicate current frame
                 if (IsKeyPressed(KEY_ONE)) {
                     seq.addAt(fig.getPose(), currentPose);
@@ -182,18 +199,7 @@ int main(int argc, char* argv[]) {
                     fig.setPose(seq.getAt(currentPose));
                 }
 
-                // Change current selected part
-                if (IsKeyPressed(KEY_UP)) {
-                    selectedPart--;
-                    if (selectedPart < 0)
-                        selectedPart = fig.size() - 1;
-                }
-                if (IsKeyPressed(KEY_DOWN)) { selectedPart = ++selectedPart % fig.size(); }
-
-                if (IsKeyPressed(KEY_O)) { cycleOnionMode(); }
-                if (IsKeyPressed(KEY_G)) { cycleGridSpace(); }
-                if (IsKeyPressed(KEY_T)) { cycleEditorMode(); }
-
+                // Controls for modifying the figure
                 editorMultiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
                 if (editorMode == EditorMode::rotate) {
                     // Change part rotation
@@ -207,20 +213,19 @@ int main(int argc, char* argv[]) {
                     if (IsKeyDown(KEY_W)) { fig.root->position.y -= translationSpeed * editorMultiplier * dt; }
                     else if (IsKeyDown(KEY_S)) { fig.root->position.y += translationSpeed * editorMultiplier * dt; }
                 }
-            }
 
-            if (animationPlaying) {
+                // We're saving the position on every frame rather than when there's a change to it
+                // I don't know yet how much that affects performance but we'll roll with this for now
+                seq.setAt(fig.getPose(), currentPose);
+            }
+            // Play the animation by going through the sequence
+            else {
                 editorTimer += GetFrameTime();
                 if (editorTimer >= frameDuration) {
                     editorTimer = 0.0f;
                     currentPose = ++currentPose % seq.size();
                     fig.setPose(seq.getAt(currentPose));
                 }
-            }
-            else {
-                // We're saving the position on every frame rather than when there's a change to it
-                // I don't know yet how much that affects performance but we'll roll with this for now
-                seq.setAt(fig.getPose(), currentPose);
             }
 
             fig.update();
@@ -229,7 +234,7 @@ int main(int argc, char* argv[]) {
                 ClearBackground(DARKGRAY);
 
                 BeginMode2D(cam); {
-                    // Onion-skinning
+                    // Draw onion-skinning
                     if (seq.size() > 1) {
                         if (onionMode == OnionMode::adjacent) {
                             if (currentPose != 0) dummy.setPose(seq[currentPose-1]);
@@ -293,8 +298,10 @@ int main(int argc, char* argv[]) {
                 {
                     Color color{WHITE};
                     int sides{0};
+                    // NOTE: this if-cascate over an enum looks kinda sus lel
                     if (editorMode == EditorMode::rotate) { color = GREEN; sides = 6; }
                     else if (editorMode == EditorMode::translate) { color = RED; sides = 4; }
+                    else if (editorMode == EditorMode::playing) { color = BLUE; sides = 3; }
                     DrawPoly(
                         (Vector2){WIN_WIDTH - 30, 30},
                         sides, 15.0f, 0.0f, color
