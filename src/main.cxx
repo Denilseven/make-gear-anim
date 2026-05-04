@@ -32,6 +32,9 @@ int main(int argc, char* argv[]) {
             else if (std::string_view(argv[i]) == "-s") {
                 sequenceFilename = argv[++i];
             }
+            else if (std::string_view(argv[i]) == "-z") {
+                cameraZoomLevel = std::stof(argv[++i]);
+            }
             else if (i > 0) {
                 std::cerr << "Error: Invalid argument given, `" << argv[i] << "`" << std::endl;
                 printHelp();
@@ -113,6 +116,11 @@ int main(int argc, char* argv[]) {
 
         Sequence seq{};
         Figure dummy{};
+        Camera2D cam{};
+
+        cam.offset = (Vector2){WIN_WIDTH/2, WIN_HEIGHT/2};
+        cam.target = (Vector2){WIN_WIDTH/2, WIN_HEIGHT/2};
+        cam.zoom = cameraZoomLevel;
 
         int currentPose{0};
         int selectedPart{0};
@@ -215,43 +223,46 @@ int main(int argc, char* argv[]) {
 
             fig.update();
 
-            BeginDrawing();
-            ClearBackground(DARKGRAY);
-            {
-                // Onion-skinning
-                if (seq.size() > 1) {
-                    if (onionMode == OnionMode::adjacent) {
-                        if (currentPose != 0) dummy.setPose(seq[currentPose-1]);
-                        else dummy.setPose(seq[seq.size()-1]);
-                        dummy.update();
-                        dummy.draw(texture, SPECTRE);
-                        if (currentPose < seq.size()-1) dummy.setPose(seq[currentPose+1]);
-                        else dummy.setPose(seq[0]);
-                        dummy.update();
-                        dummy.draw(texture, MELLOWS);
-                    }
-                    else if (onionMode == OnionMode::all) {
-                        for (int i = 0; i < seq.size(); i++) {
-                            if (i == currentPose) continue;
-                            dummy.setPose(seq[i]);
+            BeginDrawing(); {
+                ClearBackground(DARKGRAY);
+
+                BeginMode2D(cam); {
+                    // Onion-skinning
+                    if (seq.size() > 1) {
+                        if (onionMode == OnionMode::adjacent) {
+                            if (currentPose != 0) dummy.setPose(seq[currentPose-1]);
+                            else dummy.setPose(seq[seq.size()-1]);
                             dummy.update();
-                            dummy.draw(texture, PHANTOM);
+                            dummy.draw(texture, SPECTRE);
+                            if (currentPose < seq.size()-1) dummy.setPose(seq[currentPose+1]);
+                            else dummy.setPose(seq[0]);
+                            dummy.update();
+                            dummy.draw(texture, MELLOWS);
+                        }
+                        else if (onionMode == OnionMode::all) {
+                            for (int i = 0; i < seq.size(); i++) {
+                                if (i == currentPose) continue;
+                                dummy.setPose(seq[i]);
+                                dummy.update();
+                                dummy.draw(texture, PHANTOM);
+                            }
                         }
                     }
-                }
 
-                // Draw grid
-                if (gridSpace != 0.0f) {
-                    for (float i = 0; i < WIN_WIDTH; i+=gridSpace)
-                        DrawLine(i, 0, i, WIN_HEIGHT, BLACK);
-                    for (float i = 0; i < WIN_HEIGHT; i+=gridSpace)
-                        DrawLine(0, i, WIN_WIDTH, i, BLACK);
-                }
+                    // Draw grid
+                    if (gridSpace != 0.0f) {
+                        for (float i = 0; i <= WIN_WIDTH; i+=gridSpace)
+                            DrawLine(i, 0, i, WIN_HEIGHT, BLACK);
+                        for (float i = 0; i <= WIN_HEIGHT; i+=gridSpace)
+                            DrawLine(0, i, WIN_WIDTH, i, BLACK);
+                    }
 
-                // Draw all parts
-                fig.draw(texture, WHITE);
-                // Draw selected part over everything
-                fig[selectedPart].draw(texture, debugColors[selectedPart%debugColors.size()]);
+                    // Draw all parts
+                    fig.draw(texture, WHITE);
+                    // Draw selected part over everything
+                    fig[selectedPart].draw(texture, debugColors[selectedPart%debugColors.size()]);
+                }
+                EndMode2D();
 
                 // Draw parts list
                 for (int i = 0; i < fig.size(); i++) {
