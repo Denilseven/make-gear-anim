@@ -5,29 +5,23 @@
 #include <string>
 #include <vector>
 
-struct Sequence {
-    std::vector<Pose> poses{};
-
+struct Sequence : std::vector<Pose> {
     void addAt(const Pose& pose, int position=-1) {
         if (position == -1)
-            poses.push_back(pose);
+            push_back(pose);
         else
-            poses.insert(poses.begin() + position, pose);
+            insert(begin() + position, pose);
     }
 
     void setAt(const Pose& pose, int position) {
-        poses[position] = pose;
+        (*this)[position] = pose;
     }
 
     void removeAt(int position) {
-        poses.erase(poses.begin() + position);
+        erase(begin() + position);
     }
 
     Pose& getAt(int position) {
-        return poses[position];
-    }
-
-    int size() {
-        return poses.size();
+        return (*this)[position];
     }
 };

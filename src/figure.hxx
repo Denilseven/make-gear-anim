@@ -4,14 +4,10 @@
 #include "part.hxx"
 #include "pose.hxx"
 
-struct Figure {
-    std::vector<Part> parts;
-
-    int size() { return parts.size(); }
-
+struct Figure : std::vector<Part> {
     void update() {
-        for (int i = 0; i < parts.size(); i++) {
-            Part& part = parts[i];
+        for (int i = 0; i < size(); i++) {
+            Part& part = (*this)[i];
             // Set world rotation and position for each part
             if (part.parent != nullptr) {
                 part.worldRotation = part.localRotation + part.parent->worldRotation;
@@ -33,13 +29,13 @@ struct Figure {
     }
 
     void draw(Texture texture, Color color) {
-        for (Part& part : parts)
+        for (Part& part : (*this))
             part.draw(texture, color);
     }
 
     Pose getPose() {
         Pose result{};
-        for (Part& part : parts) {
+        for (Part& part : (*this)) {
             if (part.parent == nullptr)
                 result.positionMap[part.name] = part.position;
             result.rotationMap[part.name] = part.localRotation;
@@ -48,7 +44,7 @@ struct Figure {
     }
 
     void setPose(Pose& newPose) {
-        for (Part& part : parts) {
+        for (Part& part : (*this)) {
             if (newPose.positionMap.find(part.name) != newPose.positionMap.end())
                 part.position = newPose.positionMap[part.name];
             if (newPose.rotationMap.find(part.name) != newPose.rotationMap.end())
@@ -63,7 +59,7 @@ struct Figure {
             std::exit(1);
         }
 
-        parts.clear();
+        clear();
 
         std::vector<std::string> parents{};
         std::string s{};
@@ -94,16 +90,16 @@ struct Figure {
                 catch (...) {
                     return false;
                 }
-                parts.push_back(newPart);
+                push_back(newPart);
             }
         }
-        for (int i = 0; i < parts.size(); i++) {
-            parts[i].parent = getPartByName(parts, parents[i]);
+        for (int i = 0; i < size(); i++) {
+            (*this)[i].parent = getPartByName((*this), parents[i]);
             // We set the parent pointers after the list is complete because setting
             // them while it is being built and resized seems to mess up everything.
-            if (parts[i].parent == nullptr) {
-                parts[i].position.x = WIN_WIDTH / 2;
-                parts[i].position.y = WIN_HEIGHT / 2;
+            if ((*this)[i].parent == nullptr) {
+                (*this)[i].position.x = WIN_WIDTH / 2;
+                (*this)[i].position.y = WIN_HEIGHT / 2;
             }
         }
         file.close();

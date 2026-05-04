@@ -10,7 +10,7 @@ struct PersistenceManager {
         std::stringstream stream{};
 
         for (int i = 0; i < sequence.size(); i++) {
-            Pose& pose = sequence.poses[i];
+            Pose& pose = sequence[i];
             stream << "POSE\n" << i << "\n";
             for (const auto& pair : pose.positionMap) {
                 stream << "POSITION\n" << pair.first << "\n";
@@ -40,7 +40,7 @@ struct PersistenceManager {
             return false;
         }
 
-        sequence.poses.clear();
+        sequence.clear();
 
         Pose newPose{};
         std::string name{};

@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
         DrawTexture(texture, 0, 0, BLACK);
         for (int i = 0; i < fig.size(); i++) {
-            Part& part = fig.parts[i];
+            Part& part = fig[i];
             Color color = debugColors[i%debugColors.size()];
 
             DrawRectangleLinesEx(part.bounds, 1, color);
@@ -193,10 +193,10 @@ int main(int argc, char* argv[]) {
 
         editorMultiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
         // Change part rotation
-        if (IsKeyDown(KEY_A)) { fig.parts[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt; }
-        if (IsKeyDown(KEY_D)) { fig.parts[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt; }
+        if (IsKeyDown(KEY_A)) { fig[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt; }
+        if (IsKeyDown(KEY_D)) { fig[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt; }
         // Change part position
-        if (IsKeyDown(KEY_T)) { fig.parts[selectedPart].position = GetMousePosition(); }
+        if (IsKeyDown(KEY_T)) { fig[selectedPart].position = GetMousePosition(); }
 
         if (animationPlaying) {
             editorTimer += GetFrameTime();
@@ -221,12 +221,12 @@ int main(int argc, char* argv[]) {
         if (seq.size() > 1) {
             if (onionMode == 1) {
                 // "Adjacent poses only"
-                if (currentPose != 0) dummy.setPose(seq.poses[currentPose-1]);
-                else dummy.setPose(seq.poses[seq.size()-1]);
+                if (currentPose != 0) dummy.setPose(seq[currentPose-1]);
+                else dummy.setPose(seq[seq.size()-1]);
                 dummy.update();
                 dummy.draw(texture, SPECTRE);
-                if (currentPose < seq.size()-1) dummy.setPose(seq.poses[currentPose+1]);
-                else dummy.setPose(seq.poses[0]);
+                if (currentPose < seq.size()-1) dummy.setPose(seq[currentPose+1]);
+                else dummy.setPose(seq[0]);
                 dummy.update();
                 dummy.draw(texture, MELLOWS);
             }
@@ -234,7 +234,7 @@ int main(int argc, char* argv[]) {
                 // "All poses"
                 for (int i = 0; i < seq.size(); i++) {
                     if (i == currentPose) continue;
-                    dummy.setPose(seq.poses[i]);
+                    dummy.setPose(seq[i]);
                     dummy.update();
                     dummy.draw(texture, PHANTOM);
                 }
@@ -252,11 +252,11 @@ int main(int argc, char* argv[]) {
         // Draw all parts
         fig.draw(texture, WHITE);
         // Draw selected part over everything
-        fig.parts[selectedPart].draw(texture, debugColors[selectedPart%debugColors.size()]);
+        fig[selectedPart].draw(texture, debugColors[selectedPart%debugColors.size()]);
 
         // Draw parts list
         for (int i = 0; i < fig.size(); i++) {
-            Part& part = fig.parts[i];
+            Part& part = fig[i];
             DrawText(
                 TextFormat("%s", part.name.c_str()),
                 10, 10+(20*i), 20,
