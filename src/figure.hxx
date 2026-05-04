@@ -5,6 +5,8 @@
 #include "pose.hxx"
 
 struct Figure : std::vector<Part> {
+    Part* root{nullptr}; // The figure's `root` shall be its first Part which has no parent
+
     void update() {
         for (int i = 0; i < size(); i++) {
             Part& part = (*this)[i];

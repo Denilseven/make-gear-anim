@@ -1,4 +1,5 @@
 #include "common.hxx"
+#include "editor.hxx"
 #include "figure.hxx"
 #include "files.hxx"
 #include "part.hxx"
@@ -14,9 +15,6 @@
 int main(int argc, char* argv[]) {
     Texture texture{};
     Figure fig{};
-
-    float editorTimer{0.0f};
-    float frameDuration{1.0f/12.0f}; // 12 fps animation
 
     // Read given arguments
     {
@@ -108,7 +106,7 @@ int main(int argc, char* argv[]) {
         CloseWindow();
     }
 
-    // Second window, "Sequencing window"
+    // Second window, "Sequencing window", the animation editor
     {
         InitWindow(WIN_WIDTH, WIN_HEIGHT, "SECOND_WINDOW");
         SetTargetFPS(60);
@@ -116,15 +114,10 @@ int main(int argc, char* argv[]) {
         Sequence seq{};
         Figure dummy{};
 
-        int selectedPart{0};
         int currentPose{0};
-        int onionMode{2};
-        float gridSpace{0.0f};
+        int selectedPart{0};
 
         float dt{0.0f};
-        float editorMultiplier{1.0f};
-        const float rotationSpeed{100.0f};
-        bool animationPlaying{false};
 
         readFigureFromFile(dummy, partsFilename);
         texture = LoadTexture(textureFilename);
@@ -138,76 +131,73 @@ int main(int argc, char* argv[]) {
         while(!WindowShouldClose()) {
             dt = GetFrameTime();
 
-            // Save current animation sequence
-            if (IsKeyPressed(KEY_FIVE)) {
-                writeSequenceToFile(seq, sequenceFilename);
-            }
-            // Load animation sequence
-            if (IsKeyPressed(KEY_SIX)) {
-                readSequenceFromFile(seq, sequenceFilename);
-                currentPose = 0;
-                fig.setPose(seq.getAt(currentPose));
-            }
+            // Inputs
+            {
+                // Save current animation sequence
+                if (IsKeyPressed(KEY_FIVE)) {
+                    writeSequenceToFile(seq, sequenceFilename);
+                }
+                // Load animation sequence
+                if (IsKeyPressed(KEY_SIX)) {
+                    readSequenceFromFile(seq, sequenceFilename);
+                    currentPose = 0;
+                    fig.setPose(seq.getAt(currentPose));
+                }
 
-            // Play or stop
-            if (IsKeyPressed(KEY_P)) {
-                animationPlaying = !animationPlaying; editorTimer = 0.0f;
-            }
-            // Duplicate current frame
-            if (IsKeyPressed(KEY_ONE)) {
-                seq.addAt(fig.getPose(), currentPose);
-                currentPose++;
-            }
-            // Delete current frame
-            if (IsKeyPressed(KEY_TWO) && seq.size() > 1) {
-                seq.removeAt(currentPose);
-                if (currentPose > 0) currentPose--;
-                fig.setPose(seq.getAt(currentPose));
-            }
-            // Go to the previous frame
-            if (IsKeyPressed(KEY_LEFT)) {
-                currentPose--;
-                if (currentPose < 0)
-                    currentPose = seq.size() - 1;
-                fig.setPose(seq.getAt(currentPose));
-            }
-            // Go to the next frame
-            if (IsKeyPressed(KEY_RIGHT)) {
-                currentPose = ++currentPose % seq.size();
-                fig.setPose(seq.getAt(currentPose));
-            }
+                // Play or stop
+                if (IsKeyPressed(KEY_P)) {
+                    animationPlaying = !animationPlaying; editorTimer = 0.0f;
+                }
+                // Duplicate current frame
+                if (IsKeyPressed(KEY_ONE)) {
+                    seq.addAt(fig.getPose(), currentPose);
+                    currentPose++;
+                }
+                // Delete current frame
+                if (IsKeyPressed(KEY_TWO) && seq.size() > 1) {
+                    seq.removeAt(currentPose);
+                    if (currentPose > 0) currentPose--;
+                    fig.setPose(seq.getAt(currentPose));
+                }
+                // Go to the previous frame
+                if (IsKeyPressed(KEY_LEFT)) {
+                    currentPose--;
+                    if (currentPose < 0)
+                        currentPose = seq.size() - 1;
+                    fig.setPose(seq.getAt(currentPose));
+                }
+                // Go to the next frame
+                if (IsKeyPressed(KEY_RIGHT)) {
+                    currentPose = ++currentPose % seq.size();
+                    fig.setPose(seq.getAt(currentPose));
+                }
 
-            // Change current selected part
-            if (IsKeyPressed(KEY_W)) {
-                selectedPart--;
-                if (selectedPart < 0)
-                    selectedPart = fig.size() - 1;
+                // Change current selected part
+                if (IsKeyPressed(KEY_UP)) {
+                    selectedPart--;
+                    if (selectedPart < 0)
+                        selectedPart = fig.size() - 1;
+                }
+                if (IsKeyPressed(KEY_DOWN)) { selectedPart = ++selectedPart % fig.size(); }
+
+                if (IsKeyPressed(KEY_O)) { cycleOnionMode(); }
+                if (IsKeyPressed(KEY_G)) { cycleGridSpace(); }
+                if (IsKeyPressed(KEY_T)) { cycleEditorMode(); }
+
+                editorMultiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
+                if (editorMode == EditorMode::rotate) {
+                    // Change part rotation
+                    if (IsKeyDown(KEY_A)) { fig[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt; }
+                    if (IsKeyDown(KEY_D)) { fig[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt; }
+                }
+                else if (editorMode == EditorMode::translate && fig.root != nullptr) {
+                    // Change part position
+                    if (IsKeyDown(KEY_A)) { fig.root->position.x -= translationSpeed * editorMultiplier * dt; }
+                    else if (IsKeyDown(KEY_D)) { fig.root->position.x += translationSpeed * editorMultiplier * dt; }
+                    if (IsKeyDown(KEY_W)) { fig.root->position.y -= translationSpeed * editorMultiplier * dt; }
+                    else if (IsKeyDown(KEY_S)) { fig.root->position.y += translationSpeed * editorMultiplier * dt; }
+                }
             }
-            if (IsKeyPressed(KEY_S)) { selectedPart = ++selectedPart % fig.size(); }
-
-            // Change onion mode
-            // WARNING: magic number!
-            if (IsKeyPressed(KEY_O)) { onionMode = ++onionMode % 3; }
-
-            // Change grids
-            // WARNING: many magic numbers!!!
-            if (IsKeyPressed(KEY_G)) {
-                if (gridSpace == 0.0f)
-                    gridSpace = 250.0f;
-                else if (gridSpace == 250.0f)
-                    gridSpace = 125.0f;
-                else if (gridSpace == 125.0f)
-                    gridSpace = 62.5f;
-                else
-                    gridSpace = 0.0f;
-            }
-
-            editorMultiplier = IsKeyDown(KEY_LEFT_SHIFT) ? 0.1f : 1.0f;
-            // Change part rotation
-            if (IsKeyDown(KEY_A)) { fig[selectedPart].localRotation -= rotationSpeed * editorMultiplier * dt; }
-            if (IsKeyDown(KEY_D)) { fig[selectedPart].localRotation += rotationSpeed * editorMultiplier * dt; }
-            // Change part position
-            if (IsKeyDown(KEY_T)) { fig[selectedPart].position = GetMousePosition(); }
 
             if (animationPlaying) {
                 editorTimer += GetFrameTime();
@@ -227,67 +217,77 @@ int main(int argc, char* argv[]) {
 
             BeginDrawing();
             ClearBackground(DARKGRAY);
-            
-            // Onion-skinning
-            if (seq.size() > 1) {
-                if (onionMode == 1) {
-                    // "Adjacent poses only"
-                    if (currentPose != 0) dummy.setPose(seq[currentPose-1]);
-                    else dummy.setPose(seq[seq.size()-1]);
-                    dummy.update();
-                    dummy.draw(texture, SPECTRE);
-                    if (currentPose < seq.size()-1) dummy.setPose(seq[currentPose+1]);
-                    else dummy.setPose(seq[0]);
-                    dummy.update();
-                    dummy.draw(texture, MELLOWS);
-                }
-                else if (onionMode == 2) {
-                    // "All poses"
-                    for (int i = 0; i < seq.size(); i++) {
-                        if (i == currentPose) continue;
-                        dummy.setPose(seq[i]);
+            {
+                // Onion-skinning
+                if (seq.size() > 1) {
+                    if (onionMode == OnionMode::adjacent) {
+                        if (currentPose != 0) dummy.setPose(seq[currentPose-1]);
+                        else dummy.setPose(seq[seq.size()-1]);
                         dummy.update();
-                        dummy.draw(texture, PHANTOM);
+                        dummy.draw(texture, SPECTRE);
+                        if (currentPose < seq.size()-1) dummy.setPose(seq[currentPose+1]);
+                        else dummy.setPose(seq[0]);
+                        dummy.update();
+                        dummy.draw(texture, MELLOWS);
+                    }
+                    else if (onionMode == OnionMode::all) {
+                        for (int i = 0; i < seq.size(); i++) {
+                            if (i == currentPose) continue;
+                            dummy.setPose(seq[i]);
+                            dummy.update();
+                            dummy.draw(texture, PHANTOM);
+                        }
                     }
                 }
-            }
-            
-            // Draw grid
-            if (gridSpace != 0.0f) {
-                for (float i = 0; i < WIN_WIDTH; i+=gridSpace)
-                    DrawLine(i, 0, i, WIN_HEIGHT, BLACK);
-                for (float i = 0; i < WIN_HEIGHT; i+=gridSpace)
-                    DrawLine(0, i, WIN_WIDTH, i, BLACK);
-            }
 
-            // Draw all parts
-            fig.draw(texture, WHITE);
-            // Draw selected part over everything
-            fig[selectedPart].draw(texture, debugColors[selectedPart%debugColors.size()]);
+                // Draw grid
+                if (gridSpace != 0.0f) {
+                    for (float i = 0; i < WIN_WIDTH; i+=gridSpace)
+                        DrawLine(i, 0, i, WIN_HEIGHT, BLACK);
+                    for (float i = 0; i < WIN_HEIGHT; i+=gridSpace)
+                        DrawLine(0, i, WIN_WIDTH, i, BLACK);
+                }
 
-            // Draw parts list
-            for (int i = 0; i < fig.size(); i++) {
-                Part& part = fig[i];
-                DrawText(
-                    TextFormat("%s", part.name.c_str()),
-                    10, 10+(20*i), 20,
-                    selectedPart == i ? debugColors[selectedPart%debugColors.size()] : WHITE
-                );
+                // Draw all parts
+                fig.draw(texture, WHITE);
+                // Draw selected part over everything
+                fig[selectedPart].draw(texture, debugColors[selectedPart%debugColors.size()]);
+
+                // Draw parts list
+                for (int i = 0; i < fig.size(); i++) {
+                    Part& part = fig[i];
+                    DrawText(
+                        TextFormat("%s", part.name.c_str()),
+                        10, 10+(20*i), 20,
+                        selectedPart == i ? debugColors[selectedPart%debugColors.size()] : WHITE
+                    );
+                }
+
+                // Draw timeline
+                if (seq.size() > 0) {
+                    DrawRectangle(0, WIN_HEIGHT-10, WIN_WIDTH, 10, GRAY);
+                    int a = WIN_WIDTH / seq.size();
+                    DrawRectangle(
+                        a*currentPose, WIN_HEIGHT-20,
+                        currentPose == seq.size()-1 ? WIN_WIDTH: a, 20,
+                        BLUE
+                    );
+                    DrawText(TextFormat("%d", currentPose), 10, WIN_HEIGHT-60, 40, BLUE);
+                    DrawText(TextFormat("[%d]", seq.size()), 60, WIN_HEIGHT-45, 20, GRAY);
+                }
+
+                // Draw mode indicator
+                {
+                    Color color{WHITE};
+                    int sides{0};
+                    if (editorMode == EditorMode::rotate) { color = GREEN; sides = 6; }
+                    else if (editorMode == EditorMode::translate) { color = RED; sides = 4; }
+                    DrawPoly(
+                        (Vector2){WIN_WIDTH - 30, 30},
+                        sides, 15.0f, 0.0f, color
+                    );
+                }
             }
-            
-            // Draw timeline
-            if (seq.size() > 0) {
-                DrawRectangle(0, WIN_HEIGHT-10, WIN_WIDTH, 10, GRAY);
-                int a = WIN_WIDTH / seq.size();
-                DrawRectangle(
-                    a*currentPose, WIN_HEIGHT-20,
-                    currentPose == seq.size()-1 ? WIN_WIDTH: a, 20,
-                    BLUE
-                );
-                DrawText(TextFormat("%d", currentPose), 10, WIN_HEIGHT-60, 40, BLUE);
-                DrawText(TextFormat("[%d]", seq.size()), 60, WIN_HEIGHT-45, 20, GRAY);
-            }
-            
             EndDrawing();
         }
 

@@ -124,6 +124,8 @@ bool readFigureFromFile(Figure& figure, const char* filename) {
                 figure[i].position.y = WIN_HEIGHT / 2;
             }
         }
+        figure.root = figure.getPartByName(figure.getPose().positionMap.begin()->first);
+
         file.close();
         return true;
     }
