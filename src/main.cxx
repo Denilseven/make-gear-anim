@@ -1,7 +1,7 @@
 #include "common.hxx"
 #include "figure.hxx"
+#include "files.hxx"
 #include "part.hxx"
-#include "persistenceManager.hxx"
 #include "pose.hxx"
 #include "sequence.hxx"
 #include <fstream>
@@ -53,14 +53,14 @@ int main(int argc, char* argv[]) {
     SetTargetFPS(60);
 
     texture = LoadTexture(textureFilename);
-    bool partsAreValid = fig.readFromFile(partsFilename);
+    bool partsAreValid = readFigureFromFile(fig, partsFilename);
 
     while (!WindowShouldClose() && !IsKeyDown(KEY_ENTER)) {
         SetMouseCursor(3);
         editorTimer += GetFrameTime();
         if (editorTimer >= 0.1f) {
             editorTimer = 0.0f;
-            partsAreValid = fig.readFromFile(partsFilename);
+            partsAreValid = readFigureFromFile(fig, partsFilename);
         }
 
         BeginDrawing();
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     InitWindow(WIN_WIDTH, WIN_HEIGHT, "SECOND_WINDOW");
     SetTargetFPS(60);
 
-    dummy.readFromFile(partsFilename);
+    readFigureFromFile(dummy, partsFilename);
     texture = LoadTexture(textureFilename);
     int selectedPart{0};
     int currentPose{0};
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     Sequence seq{};
     seq.addAt(fig.getPose());
     // If possible, load in the given sequence, if not, continue with empty
-    PersistenceManager::setSequenceFromFile(seq, sequenceFilename);
+    readSequenceFromFile(seq, sequenceFilename);
     currentPose = 0;
     fig.setPose(seq.getAt(currentPose));
 
@@ -131,11 +131,11 @@ int main(int argc, char* argv[]) {
 
         // Save current animation sequence
         if (IsKeyPressed(KEY_FIVE)) {
-            PersistenceManager::save(seq, sequenceFilename);
+            writeSequenceToFile(seq, sequenceFilename);
         }
         // Load animation sequence
         if (IsKeyPressed(KEY_SIX)) {
-            PersistenceManager::setSequenceFromFile(seq, sequenceFilename);
+            readSequenceFromFile(seq, sequenceFilename);
             currentPose = 0;
             fig.setPose(seq.getAt(currentPose));
         }

@@ -32,10 +32,3 @@ struct Part {
         );
     }
 };
-
-Part* getPartByName(std::vector<Part>& list, const std::string name) {
-    for (int i = 0; i < list.size(); i++)
-        if (list[i].name == name)
-            return &list[i];
-    return nullptr;
-}
