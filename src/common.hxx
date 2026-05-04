@@ -35,13 +35,13 @@ Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees)
 void printHelp() {
     std::cout << "\n";
     std::cout << "(arguments help)\n\n";
-    std::cout << "-t filename.png" << "\n\tsets the texture\n";
+    std::cout << "[-t | --texture] filename.png" << "\n\tsets the texture\n";
     std::cout << "\t(default is `" << DEFAULT_TEXTURE_FILENAME <<"`)\n";
-    std::cout << "-p filename.parts" << "\n\tsets the parts data file (basically the \"model\")\n";
+    std::cout << "[-p | --model] filename.parts" << "\n\tsets the parts data file (basically the \"model\")\n";
     std::cout << "\t(default is `" << DEFAULT_PARTS_FILENAME <<"`)\n";
-    std::cout << "-s filename.sequence" << "\n\tsets the sequence file (basically the \"animation\")\n";
+    std::cout << "[-s | --animation] filename.sequence" << "\n\tsets the sequence file (basically the \"animation\")\n";
     std::cout << "\t(default is `" << DEFAULT_SEQUENCE_FILENAME <<"`)\n";
-    std::cout << "-z 0.5" << "\n\tsets the zoom level for the camera\n";
+    std::cout << "[-z | --zoom] 0.5" << "\n\tsets the zoom level for the camera\n";
     std::cout << "\t(default is `" << DEFAULT_CAMERA_ZOOM_LEVEL <<"`)\n";
     std::cout << std::endl;
 }

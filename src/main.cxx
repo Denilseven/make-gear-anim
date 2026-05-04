@@ -19,20 +19,22 @@ int main(int argc, char* argv[]) {
     // Read given arguments
     {
         for (int i = 0; i < argc; i++) {
-            if (std::string_view(argv[i]) == "-h") {
+            std::string arg{std::string_view(argv[i])};
+
+            if (arg == "-h" || arg == "--help") {
                 printHelp();
                 return 1;
             }
-            else if (std::string_view(argv[i]) == "-t") {
+            else if (arg == "-t" || arg == "--texture") {
                 textureFilename = argv[++i];
             }
-            else if (std::string_view(argv[i]) == "-p") {
+            else if (arg == "-p" || arg == "--model") {
                 partsFilename = argv[++i];
             }
-            else if (std::string_view(argv[i]) == "-s") {
+            else if (arg == "-s" || arg == "--animation") {
                 sequenceFilename = argv[++i];
             }
-            else if (std::string_view(argv[i]) == "-z") {
+            else if (arg == "-z" || arg == "--zoom") {
                 cameraZoomLevel = std::stof(argv[++i]);
             }
             else if (i > 0) {
