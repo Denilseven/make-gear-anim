@@ -117,15 +117,15 @@ int main(int argc, char* argv[]) {
 
     // Second window, "Sequencing window", the animation editor
     {
-        InitWindow(WIN_WIDTH, WIN_HEIGHT, "SECOND_WINDOW");
+        InitWindow(windowWidth, windowHeight, "SECOND_WINDOW");
         SetTargetFPS(60);
 
         Sequence seq{};
         Figure dummy{};
         Camera2D cam{};
 
-        cam.offset = (Vector2){WIN_WIDTH/2, WIN_HEIGHT/2};
-        cam.target = (Vector2){WIN_WIDTH/2, WIN_HEIGHT/2};
+        cam.offset = (Vector2){windowWidth/2, windowHeight/2};
+        cam.target = (Vector2){windowWidth/2, windowHeight/2};
         cam.zoom = cameraZoomLevel;
 
         int currentPose{0};
@@ -175,6 +175,12 @@ int main(int argc, char* argv[]) {
                 }
                 if (IsKeyPressed(KEY_DOWN)) { selectedPart = ++selectedPart % fig.size(); }
 
+                // Export
+                if (IsKeyPressed(KEY_ZERO)) {
+                    std::cout << "Tip: Started exporting!" << std::endl;
+                    exportAsSpritesheet(texture, seq);
+                    std::cout << "Tip: Done exporting!" << std::endl;
+                }
             }
 
             // Editor controls
@@ -262,15 +268,15 @@ int main(int argc, char* argv[]) {
 
                     // Draw grid
                     if (gridMode == GridMode::grid) {
-                        for (float i = 0; i <= WIN_WIDTH; i+=gridSpace)
-                            DrawLine(i, 0, i, WIN_HEIGHT, BLACK);
-                        for (float i = 0; i <= WIN_HEIGHT; i+=gridSpace)
-                            DrawLine(0, i, WIN_WIDTH, i, BLACK);
+                        for (float i = 0; i <= windowWidth; i+=gridSpace)
+                            DrawLine(i, 0, i, windowHeight, BLACK);
+                        for (float i = 0; i <= windowHeight; i+=gridSpace)
+                            DrawLine(0, i, windowWidth, i, BLACK);
                     }
                     else if (gridMode == GridMode::rect) {
                         DrawRectangleLines(
-                            (WIN_WIDTH / 2) - (referenceRectangle.x / 2),
-                            (WIN_HEIGHT / 2) - (referenceRectangle.y / 2),
+                            (windowWidth / 2) - (referenceRectangle.x / 2),
+                            (windowHeight / 2) - (referenceRectangle.y / 2),
                             referenceRectangle.x,
                             referenceRectangle.y,
                             BLACK
@@ -296,15 +302,15 @@ int main(int argc, char* argv[]) {
 
                 // Draw timeline
                 if (seq.size() > 0) {
-                    DrawRectangle(0, WIN_HEIGHT-10, WIN_WIDTH, 10, GRAY);
-                    int a = WIN_WIDTH / seq.size();
+                    DrawRectangle(0, windowHeight-10, windowWidth, 10, GRAY);
+                    int a = windowWidth / seq.size();
                     DrawRectangle(
-                        a*currentPose, WIN_HEIGHT-20,
-                        currentPose == seq.size()-1 ? WIN_WIDTH: a, 20,
+                        a*currentPose, windowHeight-20,
+                        currentPose == seq.size()-1 ? windowWidth: a, 20,
                         BLUE
                     );
-                    DrawText(TextFormat("%d", currentPose), 10, WIN_HEIGHT-60, 40, BLUE);
-                    DrawText(TextFormat("[%d]", seq.size()), 60, WIN_HEIGHT-45, 20, GRAY);
+                    DrawText(TextFormat("%d", currentPose), 10, windowHeight-60, 40, BLUE);
+                    DrawText(TextFormat("[%d]", seq.size()), 60, windowHeight-45, 20, GRAY);
                 }
 
                 // Draw mode indicator
@@ -316,7 +322,7 @@ int main(int argc, char* argv[]) {
                     else if (editorMode == EditorMode::translate) { color = RED; sides = 4; }
                     else if (editorMode == EditorMode::playing) { color = BLUE; sides = 3; }
                     DrawPoly(
-                        (Vector2){WIN_WIDTH - 30, 30},
+                        (Vector2){windowWidth - 30, 30},
                         sides, 15.0f, 0.0f, color
                     );
                 }

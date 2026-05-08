@@ -7,3 +7,5 @@ assets/
 /*.png
 /*.parts
 /*.sequence
+/*output/
+

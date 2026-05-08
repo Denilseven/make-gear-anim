@@ -8,15 +8,17 @@
 #define DEFAULT_TEXTURE_FILENAME "texture.png"
 #define DEFAULT_PARTS_FILENAME "character.parts"
 #define DEFAULT_SEQUENCE_FILENAME "default.sequence"
+#define DEFAULT_OUTPUT_DIRECTORY "output"
 #define DEFAULT_CAMERA_ZOOM_LEVEL 0.7f
 
 const char* textureFilename{DEFAULT_TEXTURE_FILENAME};
 const char* partsFilename{DEFAULT_PARTS_FILENAME};
 const char* sequenceFilename{DEFAULT_SEQUENCE_FILENAME};
+const char* outputDirectory{DEFAULT_OUTPUT_DIRECTORY};
 float cameraZoomLevel{DEFAULT_CAMERA_ZOOM_LEVEL};
 
-#define WIN_WIDTH 1000
-#define WIN_HEIGHT 1000
+const int windowWidth{1000};
+const int windowHeight{1000};
 
 #define SPECTRE (Color){255, 0, 0, 100}
 #define PHANTOM (Color){0, 255, 0, 100}
