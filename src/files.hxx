@@ -79,7 +79,8 @@ bool readFigureFromFile(Figure& figure, const char* filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Error: Unable to open `" << filename << "`!" << std::endl;
-        std::exit(1);
+        file.close();
+        return false;
     }
 
     figure.clear();
@@ -133,29 +134,32 @@ bool readFigureFromFile(Figure& figure, const char* filename) {
 
 bool exportAsSpritesheet(Texture texture, Sequence sequence) {
     RenderTexture target = LoadRenderTexture(windowWidth*sequence.size(), windowHeight);
-    Image output{};
     Figure figure{};
-    Camera2D camera{};
 
-    readFigureFromFile(figure, partsFilename);
+    bool texSuccess = 0 != target.texture.width;
+    bool figSuccess = readFigureFromFile(figure, partsFilename);
+    bool dirSuccess = 0 == MakeDirectory(outputDirectory);
 
-    camera.offset = (Vector2){windowWidth/2, windowHeight/2};
-    camera.target = (Vector2){windowWidth/2, windowHeight/2};
-    camera.zoom = cameraZoomLevel;
-
-    if (MakeDirectory(outputDirectory) != 0) {
-        std::cerr << "Error: Failed to create output directory, `" << outputDirectory << "`" << std::endl;
-        UnloadTexture(texture);
-        UnloadImage(output);
+    if (!texSuccess || !figSuccess || !dirSuccess) {
+        if (!texSuccess) std::cerr << "Error: Failed to create a render texture (width was " << target.texture.width << ")" << std::endl;
+        if (!figSuccess) std::cerr << "Error: Failed to read figure" << std::endl;
+        if (!dirSuccess) std::cerr << "Error: Failed to create output directory, `" << outputDirectory << "`" << std::endl;
+        UnloadRenderTexture(target);
         return false;
     }
+
+    Camera2D camera{
+        .offset = (Vector2){windowWidth/2, windowHeight/2},
+        .target = (Vector2){windowWidth/2, windowHeight/2},
+        .zoom = cameraZoomLevel,
+    };
 
     for (int i = 0; i < sequence.size(); i++) {
         figure.setPose(sequence[i]);
         figure.update();
         BeginTextureMode(target); {
             BeginMode2D(camera); {
-                figure.draw(texture, debugColors[i]);
+                figure.draw(texture, WHITE);
             }
             EndMode2D();
         }
@@ -163,12 +167,14 @@ bool exportAsSpritesheet(Texture texture, Sequence sequence) {
         camera.offset.x += windowWidth;
     }
 
-    output = LoadImageFromTexture(target.texture);
+    Image output = LoadImageFromTexture(target.texture);
     ImageFlipVertical(&output); // For some reason, the image loads in flipped
 
-    ExportImage(output, TextFormat("%s/%s-%s.png", outputDirectory, textureFilename, sequenceFilename));
+    bool exportSuccess = ExportImage(output, TextFormat("%s/%s-%s.png", outputDirectory, textureFilename, sequenceFilename));
 
+    if (!exportSuccess)
+        std::cerr << "Error: Failed to export image" << std::endl;
     UnloadRenderTexture(target);
     UnloadImage(output);
-    return true;
+    return exportSuccess ? true : false;
 }
