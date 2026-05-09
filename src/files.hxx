@@ -7,23 +7,28 @@
 #include <sstream>
 #include <string>
 
+std::string wordAt(std::string& text, int index = 0) {
+    std::string result{};
+    std::istringstream istream{text};
+    for (int i = -1; i < index; i++)
+        std::getline(istream, result, ' ');
+    std::cout << result << std::endl;
+    return result;
+}
+
 bool writeSequenceToFile(Sequence& sequence, std::string filename) {
     std::stringstream stream{};
 
     for (int i = 0; i < sequence.size(); i++) {
         Pose& pose = sequence[i];
-        stream << "POSE\n" << i << "\n";
-        for (const auto& pair : pose.mirrorMap) {
-            stream << "MIRROR\n" << pair.first << "\n";
-        }
-        for (const auto& pair : pose.positionMap) {
-            stream << "POSITION\n" << pair.first << "\n";
-            stream << pair.second.x << "\n" << pair.second.y << "\n";
-        }
-        for (const auto& pair : pose.rotationMap) {
-            stream << pair.first << "\n" << pair.second << "\n";
-        }
-        stream << "!\n";
+        stream << "POSE " << i << "\n";
+        for (const auto& pair : pose.mirrorMap)
+            stream << "(mirror) " << pair.first << "\n";
+        for (const auto& pair : pose.positionMap)
+            stream << "(position) " << pair.first << " " << pair.second.x << " " << pair.second.y << "\n";
+        for (const auto& pair : pose.rotationMap)
+            stream << "(rotate) " << pair.first << " " << pair.second << "\n";
+        stream << "END\n\n";
     }
 
     std::ofstream file(filename);
@@ -37,6 +42,8 @@ bool writeSequenceToFile(Sequence& sequence, std::string filename) {
     return true;
 }
 
+// WARNING: When it fails to read, it simply crashes the program!
+// TODO: Add error checking back in!
 bool readSequenceFromFile(Sequence& sequence, std::string filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -51,35 +58,25 @@ bool readSequenceFromFile(Sequence& sequence, std::string filename) {
 
     std::string s{};
     while (getline(file, s)) {
-        if (s == "POSE") {
-            getline(file, s);
+        std::cout << "\t" << s << std::endl;
+        if (wordAt(s) == "POSE") {
             newPose = {};
         }
-        else if (s == "!") {
+        else if (wordAt(s) == "END") {
             sequence.addAt(newPose);
         }
-        else if (s == "MIRROR") {
-            try {
-                getline(file, s);
-                name = s;
-                newPose.mirrorMap[name] = true;
-            }
-            catch (...) { return false; }
+        else if (wordAt(s) == "(mirror)") {
+            name = wordAt(s, 1);
+            newPose.mirrorMap[name] = true;
         }
-        else if (s == "POSITION") {
-            try {
-                getline(file, s); name = s;
-                getline(file, s); newPose.positionMap[name].x = std::stof(s);
-                getline(file, s); newPose.positionMap[name].y = std::stof(s);
-            }
-            catch (...) { return false; }
+        else if (wordAt(s) == "(position)") {
+            name = wordAt(s, 1);
+            newPose.positionMap[name].x = std::stof(wordAt(s, 2));
+            newPose.positionMap[name].y = std::stof(wordAt(s, 3));
         }
-        else {
-            name = s;
-            try {
-                getline(file, s); newPose.rotationMap[name] = std::stof(s);
-            }
-            catch (...) { return false; }
+        else if (wordAt(s) == "(rotate)") {
+            name = wordAt(s, 1);
+            newPose.rotationMap[name] = std::stof(wordAt(s, 2));
         }
     }
     std::cout << "Success: Loaded in sequence from file `" << filename << "`" << std::endl;
