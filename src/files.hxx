@@ -12,7 +12,6 @@ std::string wordAt(std::string& text, int index = 0) {
     std::istringstream istream{text};
     for (int i = -1; i < index; i++)
         std::getline(istream, result, ' ');
-    std::cout << result << std::endl;
     return result;
 }
 
@@ -58,7 +57,6 @@ bool readSequenceFromFile(Sequence& sequence, std::string filename) {
 
     std::string s{};
     while (getline(file, s)) {
-        std::cout << "\t" << s << std::endl;
         if (wordAt(s) == "POSE") {
             newPose = {};
         }
@@ -93,27 +91,39 @@ bool readFigureFromFile(Figure& figure, const char* filename) {
 
     figure.clear();
 
+    // (part) [PART NAME]
+    // [BOUNDS X] [BOUNDS Y]
+    // [BOUNDS WIDTH] [BOUNDS HEIGHT]
+    // [PIVOT X] [PIVOT Y]
+    // [PARENT] [NOTCH ATTACHED TO]
+    // (notch) [NOTCH 1 X] [NOTCH 1 X]
+    // (notch) [NOTCH 2 X] [NOTCH 2 X]
+    // (notch) [NOTCH n X] [NOTCH n X]
     std::vector<std::string> parents{};
     std::string s{};
     while (getline(file, s)) {
-        if (s == "+") {
+        if (wordAt(s) == "(part)") {
             Part newPart{};
 
             try {
-                getline(file, s); newPart.name = s;
-                getline(file, s); newPart.bounds.x = std::stoi(s);
-                getline(file, s); newPart.bounds.y = std::stoi(s);
-                getline(file, s); newPart.bounds.width = std::stoi(s);
-                getline(file, s); newPart.bounds.height = std::stoi(s);
-                getline(file, s); newPart.pivot.x = std::stoi(s);
-                getline(file, s); newPart.pivot.y = std::stoi(s);
-                getline(file, s); parents.push_back(s);
-                getline(file, s); newPart.connectedNotch = std::stoi(s);
+                newPart.name = wordAt(s, 1);
+                getline(file, s);
+                newPart.bounds.x = std::stoi(wordAt(s, 0));
+                newPart.bounds.y = std::stoi(wordAt(s, 1));
+                getline(file, s);
+                newPart.bounds.width = std::stoi(wordAt(s, 0));
+                newPart.bounds.height = std::stoi(wordAt(s, 1));
+                getline(file, s);
+                newPart.pivot.x = std::stoi(wordAt(s, 0));
+                newPart.pivot.y = std::stoi(wordAt(s, 1));
+                getline(file, s);
+                parents.push_back(wordAt(s, 0));
+                newPart.connectedNotch = std::stoi(wordAt(s, 1));
             
                 getline(file, s);
-                while (s == ".") {
-                    getline(file, s); int x = std::stoi(s);
-                    getline(file, s); int y = std::stoi(s);
+                while (wordAt(s) == "(notch)") {
+                    int x = std::stoi(wordAt(s, 1));
+                    int y = std::stoi(wordAt(s, 2));
                     newPart.localNotches.push_back((Vector2){(float)x, (float)y});
                     newPart.worldNotches.push_back((Vector2){(float)x, (float)y});
                     getline(file, s);

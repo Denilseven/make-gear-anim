@@ -7,6 +7,8 @@ build/
 assets/
 /*.png
 /*.parts
+/*.figure
+/*.fig
 /*.sequence
 /*.seq
 /*output/
