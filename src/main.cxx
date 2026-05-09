@@ -48,21 +48,20 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        texture = LoadTexture(textureFilename);
-        if (texture.width <= 0) {
-            std::cerr << "Error: Failed to load `" << textureFilename << "` or it's an invalid file for a texture." << std::endl;
-            UnloadTexture(texture);
-            CloseWindow();
+        if (!FileExists(textureFilename)) {
+            std::cerr << "Error: Couldn't find `" << textureFilename << "` texture file." << std::endl;
             return 1;
         }
     }
 
     // First window, "Parts slicer"
     {
-        InitWindow(texture.width, texture.height, "FIRST_WINDOW");
+        InitWindow(windowWidth, windowHeight, "FIRST_WINDOW");
         SetTargetFPS(60);
 
         texture = LoadTexture(textureFilename);
+        SetWindowSize(texture.width, texture.height);
+
         bool partsAreValid = readFigureFromFile(fig, figureFilename);
 
         while (!WindowShouldClose() && !IsKeyDown(KEY_ENTER)) {
