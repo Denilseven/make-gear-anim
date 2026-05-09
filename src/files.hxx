@@ -13,6 +13,9 @@ bool writeSequenceToFile(Sequence& sequence, std::string filename) {
     for (int i = 0; i < sequence.size(); i++) {
         Pose& pose = sequence[i];
         stream << "POSE\n" << i << "\n";
+        for (const auto& pair : pose.mirrorMap) {
+            stream << "MIRROR\n" << pair.first << "\n";
+        }
         for (const auto& pair : pose.positionMap) {
             stream << "POSITION\n" << pair.first << "\n";
             stream << pair.second.x << "\n" << pair.second.y << "\n";
@@ -54,6 +57,14 @@ bool readSequenceFromFile(Sequence& sequence, std::string filename) {
         }
         else if (s == "!") {
             sequence.addAt(newPose);
+        }
+        else if (s == "MIRROR") {
+            try {
+                getline(file, s);
+                name = s;
+                newPose.mirrorMap[name] = true;
+            }
+            catch (...) { return false; }
         }
         else if (s == "POSITION") {
             try {

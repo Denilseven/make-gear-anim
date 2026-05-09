@@ -2,7 +2,7 @@ COMPILER = g++
 SOURCES = $(shell find src -name '*.cxx')
 OBJECTS = $(patsubst %.cxx,build/%.o,$(SOURCES))
 FLAGS = -Isrc/header -lraylib -lX11
-OUTPUT = game.out
+OUTPUT = makegearanim
 
 .PHONY: default build run clean
 

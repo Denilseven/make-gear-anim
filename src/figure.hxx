@@ -38,6 +38,8 @@ struct Figure : std::vector<Part> {
     Pose getPose() {
         Pose result{};
         for (Part& part : (*this)) {
+            if (part.mirror == true)
+                result.mirrorMap[part.name] = true;
             if (part.parent == nullptr)
                 result.positionMap[part.name] = part.position;
             result.rotationMap[part.name] = part.localRotation;
@@ -47,10 +49,12 @@ struct Figure : std::vector<Part> {
 
     void setPose(Pose& newPose) {
         for (Part& part : (*this)) {
+            part.mirror = newPose.mirrorMap.find(part.name) != newPose.mirrorMap.end();
             if (newPose.positionMap.find(part.name) != newPose.positionMap.end())
                 part.position = newPose.positionMap[part.name];
             if (newPose.rotationMap.find(part.name) != newPose.rotationMap.end())
                 part.localRotation = newPose.rotationMap[part.name];
+            // NOTE: Wait, does this mean for each one of these statemens we're iterating over the entire maps?!
         }
     }
 

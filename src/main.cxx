@@ -224,6 +224,11 @@ int main(int argc, char* argv[]) {
                     else if (IsKeyDown(KEY_S)) { fig.root->position.y += translationSpeed * editorMultiplier * dt; }
                 }
 
+                // Mirror part
+                if (IsKeyPressed(KEY_X)) {
+                    fig[selectedPart].mirror = !fig[selectedPart].mirror;
+                }
+
                 // We're saving the position on every frame rather than when there's a change to it
                 // I don't know yet how much that affects performance but we'll roll with this for now
                 seq.setAt(fig.getPose(), currentPose);
