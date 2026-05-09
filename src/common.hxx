@@ -6,13 +6,13 @@
 #include <vector>
 
 #define DEFAULT_TEXTURE_FILENAME "texture.png"
-#define DEFAULT_PARTS_FILENAME "character.parts"
-#define DEFAULT_SEQUENCE_FILENAME "default.sequence"
+#define DEFAULT_FIGURE_FILENAME "character.fig"
+#define DEFAULT_SEQUENCE_FILENAME "default.seq"
 #define DEFAULT_OUTPUT_DIRECTORY "output"
 #define DEFAULT_CAMERA_ZOOM_LEVEL 0.7f
 
 const char* textureFilename{DEFAULT_TEXTURE_FILENAME};
-const char* partsFilename{DEFAULT_PARTS_FILENAME};
+const char* figureFilename{DEFAULT_FIGURE_FILENAME};
 const char* sequenceFilename{DEFAULT_SEQUENCE_FILENAME};
 const char* outputDirectory{DEFAULT_OUTPUT_DIRECTORY};
 float cameraZoomLevel{DEFAULT_CAMERA_ZOOM_LEVEL};
@@ -37,11 +37,11 @@ Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees)
 void printHelp() {
     std::cout << "\n";
     std::cout << "(arguments help)\n\n";
-    std::cout << "[-t | --texture] filename.png" << "\n\tsets the texture\n";
+    std::cout << "[-t | --texture] filename.png" << "\n\tsets the texture to use\n";
     std::cout << "\t(default is `" << DEFAULT_TEXTURE_FILENAME <<"`)\n";
-    std::cout << "[-p | --model] filename.parts" << "\n\tsets the parts data file (basically the \"model\")\n";
-    std::cout << "\t(default is `" << DEFAULT_PARTS_FILENAME <<"`)\n";
-    std::cout << "[-s | --animation] filename.sequence" << "\n\tsets the sequence file (basically the \"animation\")\n";
+    std::cout << "[-f | --model] filename.fig" << "\n\tsets the figure file (the \"model\")\n";
+    std::cout << "\t(default is `" << DEFAULT_FIGURE_FILENAME <<"`)\n";
+    std::cout << "[-s | --animation] filename.seq" << "\n\tsets the sequence file (the \"animation\")\n";
     std::cout << "\t(default is `" << DEFAULT_SEQUENCE_FILENAME <<"`)\n";
     std::cout << "[-z | --zoom] 0.5" << "\n\tsets the zoom level for the camera\n";
     std::cout << "\t(default is `" << DEFAULT_CAMERA_ZOOM_LEVEL <<"`)\n";

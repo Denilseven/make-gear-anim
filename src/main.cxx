@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
                 textureFilename = argv[++i];
             }
             else if (arg == "-p" || arg == "--model") {
-                partsFilename = argv[++i];
+                figureFilename = argv[++i];
             }
             else if (arg == "-s" || arg == "--animation") {
                 sequenceFilename = argv[++i];
@@ -63,14 +63,14 @@ int main(int argc, char* argv[]) {
         SetTargetFPS(60);
 
         texture = LoadTexture(textureFilename);
-        bool partsAreValid = readFigureFromFile(fig, partsFilename);
+        bool partsAreValid = readFigureFromFile(fig, figureFilename);
 
         while (!WindowShouldClose() && !IsKeyDown(KEY_ENTER)) {
             SetMouseCursor(3);
             editorTimer += GetFrameTime();
             if (editorTimer >= 0.1f) {
                 editorTimer = 0.0f;
-                partsAreValid = readFigureFromFile(fig, partsFilename);
+                partsAreValid = readFigureFromFile(fig, figureFilename);
             }
 
             BeginDrawing();
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
 
         float dt{0.0f};
 
-        readFigureFromFile(dummy, partsFilename);
+        readFigureFromFile(dummy, figureFilename);
         texture = LoadTexture(textureFilename);
 
         seq.addAt(fig.getPose());

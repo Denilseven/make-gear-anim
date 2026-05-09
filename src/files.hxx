@@ -155,7 +155,7 @@ bool exportAsSpritesheet(Texture texture, Sequence sequence) {
     Figure figure{};
 
     bool texSuccess = 0 != target.texture.width;
-    bool figSuccess = readFigureFromFile(figure, partsFilename);
+    bool figSuccess = readFigureFromFile(figure, figureFilename);
     bool dirSuccess = 0 == MakeDirectory(outputDirectory);
 
     if (!texSuccess || !figSuccess || !dirSuccess) {
