@@ -11,11 +11,11 @@
 #define DEFAULT_OUTPUT_DIRECTORY "output"
 #define DEFAULT_CAMERA_ZOOM_LEVEL 0.7f
 
-const char* textureFilename{DEFAULT_TEXTURE_FILENAME};
-const char* figureFilename{DEFAULT_FIGURE_FILENAME};
-const char* sequenceFilename{DEFAULT_SEQUENCE_FILENAME};
-const char* outputDirectory{DEFAULT_OUTPUT_DIRECTORY};
-float cameraZoomLevel{DEFAULT_CAMERA_ZOOM_LEVEL};
+inline const char* textureFilename{DEFAULT_TEXTURE_FILENAME};
+inline const char* figureFilename{DEFAULT_FIGURE_FILENAME};
+inline const char* sequenceFilename{DEFAULT_SEQUENCE_FILENAME};
+inline const char* outputDirectory{DEFAULT_OUTPUT_DIRECTORY};
+inline float cameraZoomLevel{DEFAULT_CAMERA_ZOOM_LEVEL};
 
 const int windowWidth{1000};
 const int windowHeight{1000};
@@ -25,7 +25,7 @@ const int windowHeight{1000};
 #define MELLOWS (Color){0, 0, 255, 100}
 const std::vector<Color> debugColors = {GOLD, PINK, GREEN, SKYBLUE, PURPLE};
 
-Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees) {
+inline Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees) {
     float radians = degrees * (M_PI / 180);
     Vector2 result = (Vector2){
         result.x = (point.x-center.x)*std::cos(radians) - (point.y-center.y)*std::sin(radians),
@@ -34,7 +34,7 @@ Vector2 rotateAround(const Vector2& point, const Vector2& center, float degrees)
     return result + center;
 }
 
-void printHelp() {
+inline void printHelp() {
     std::cout << "\n";
     std::cout << "(arguments help)\n\n";
     std::cout << "[-t | --texture] filename.png" << "\n\tsets the texture to use\n";

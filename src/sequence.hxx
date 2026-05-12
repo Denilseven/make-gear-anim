@@ -1,8 +1,6 @@
 #pragma once
 
 #include "pose.hxx"
-#include <iostream>
-#include <string>
 #include <vector>
 
 struct Sequence : std::vector<Pose> {

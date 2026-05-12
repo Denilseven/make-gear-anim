@@ -1,8 +1,5 @@
 #pragma once
 
-#include "common.hxx"
-#include <fstream>
-#include <iostream>
 #include <raylib.h>
 #include <string>
 #include <vector>

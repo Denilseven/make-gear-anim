@@ -22,22 +22,22 @@ enum class GridMode : int {
     rect = 2,
 };
 
-OnionMode onionMode{OnionMode::all};
-EditorMode editorMode{EditorMode::rotate};
-GridMode gridMode{GridMode::none};
+inline OnionMode onionMode{OnionMode::all};
+inline EditorMode editorMode{EditorMode::rotate};
+inline GridMode gridMode{GridMode::none};
 
 const float rotationSpeed{100.0f};
 const float translationSpeed{150.0f};
 
-float editorMultiplier{1.0f};
+inline float editorMultiplier{1.0f};
 
-float frameDuration{1.0f/12.0f}; // 12 fps animation
-float editorTimer{0.0f};
-float gridSpace{0.0f};
-Vector2 referenceRectangle{0.0f, 0.0f};
+inline float frameDuration{1.0f/12.0f}; // 12 fps animation
+inline float editorTimer{0.0f};
+inline float gridSpace{0.0f};
+inline Vector2 referenceRectangle{0.0f, 0.0f};
 
 // WARNING: many magic numbers!!!
-void cycleGridSpace() {
+inline void cycleGridSpace() {
     switch (gridMode) {
     case GridMode::none:
         gridMode = GridMode::grid;
@@ -61,7 +61,7 @@ void cycleGridSpace() {
     }
 }
 
-void cycleEditorMode() {
+inline void cycleEditorMode() {
     if (editorMode == EditorMode::rotate)
         editorMode = EditorMode::translate;
     else if (editorMode == EditorMode::translate)
@@ -70,6 +70,6 @@ void cycleEditorMode() {
         editorMode = DEFAULT_EDITOR_MODE;
 }
 
-void cycleOnionMode() {
+inline void cycleOnionMode() {
     onionMode = (OnionMode)(((int)onionMode+1) % ONION_MODE_COUNT);
 }

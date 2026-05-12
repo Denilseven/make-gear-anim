@@ -1,8 +1,8 @@
 #pragma once
 
-#include "common.hxx"
-#include "part.hxx"
 #include <map>
+#include <raylib.h>
+#include <string>
 
 struct Pose {
     std::map<std::string, float> rotationMap{};

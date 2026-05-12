@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-std::string wordAt(std::string& text, int index = 0) {
+inline std::string wordAt(std::string& text, int index = 0) {
     std::string result{};
     std::istringstream istream{text};
     for (int i = -1; i < index; i++)
@@ -15,7 +15,7 @@ std::string wordAt(std::string& text, int index = 0) {
     return result;
 }
 
-bool writeSequenceToFile(Sequence& sequence, std::string filename) {
+inline bool writeSequenceToFile(Sequence& sequence, std::string filename) {
     std::stringstream stream{};
 
     for (int i = 0; i < sequence.size(); i++) {
@@ -43,7 +43,7 @@ bool writeSequenceToFile(Sequence& sequence, std::string filename) {
 
 // WARNING: When it fails to read, it simply crashes the program!
 // TODO: Add error checking back in!
-bool readSequenceFromFile(Sequence& sequence, std::string filename) {
+inline bool readSequenceFromFile(Sequence& sequence, std::string filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Error: Unable to open `" << filename << "` to read sequence!" << std::endl;
@@ -81,7 +81,7 @@ bool readSequenceFromFile(Sequence& sequence, std::string filename) {
     return true;
 }
 
-bool readFigureFromFile(Figure& figure, const char* filename) {
+inline bool readFigureFromFile(Figure& figure, const char* filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Error: Unable to open `" << filename << "`!" << std::endl;
@@ -140,8 +140,8 @@ bool readFigureFromFile(Figure& figure, const char* filename) {
         // We set the parent pointers after the list is complete because setting
         // them while it is being built and resized seems to mess up everything.
         if (figure[i].parent == nullptr) {
-            figure[i].position.x = windowWidth / 2;
-            figure[i].position.y = windowHeight / 2;
+            figure[i].position.x = windowWidth/2.0f;
+            figure[i].position.y = windowHeight/2.0f;
         }
     }
     figure.root = figure.getPartByName(figure.getPose().positionMap.begin()->first);
@@ -150,7 +150,7 @@ bool readFigureFromFile(Figure& figure, const char* filename) {
     return true;
 }
 
-bool exportAsSpritesheet(Texture texture, Sequence sequence) {
+inline bool exportAsSpritesheet(Texture texture, Sequence sequence) {
     RenderTexture target = LoadRenderTexture(windowWidth*sequence.size(), windowHeight);
     Figure figure{};
 
@@ -167,8 +167,8 @@ bool exportAsSpritesheet(Texture texture, Sequence sequence) {
     }
 
     Camera2D camera{
-        .offset = (Vector2){windowWidth/2, windowHeight/2},
-        .target = (Vector2){windowWidth/2, windowHeight/2},
+        .offset = (Vector2){windowWidth/2.0f, windowHeight/2.0f},
+        .target = (Vector2){windowWidth/2.0f, windowHeight/2.0f},
         .zoom = cameraZoomLevel,
     };
 

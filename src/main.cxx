@@ -3,9 +3,7 @@
 #include "figure.hxx"
 #include "files.hxx"
 #include "part.hxx"
-#include "pose.hxx"
 #include "sequence.hxx"
-#include <fstream>
 #include <iostream>
 #include <raylib.h>
 #include <raymath.h>
@@ -83,7 +81,7 @@ int main(int argc, char* argv[]) {
             DrawTexture(texture, 0, 0, BLACK);
             for (int i = 0; i < fig.size(); i++) {
                 Part& part = fig[i];
-                Color color = debugColors[i%debugColors.size()];
+                Color color = debugColors[i % debugColors.size()];
 
                 DrawRectangleLinesEx(part.bounds, 1, color);
 
@@ -123,8 +121,8 @@ int main(int argc, char* argv[]) {
         Figure dummy{};
         Camera2D cam{};
 
-        cam.offset = (Vector2){windowWidth/2, windowHeight/2};
-        cam.target = (Vector2){windowWidth/2, windowHeight/2};
+        cam.offset = (Vector2){windowWidth/2.0f, windowHeight/2.0f};
+        cam.target = (Vector2){windowWidth/2.0f, windowHeight/2.0f};
         cam.zoom = cameraZoomLevel;
 
         int currentPose{0};
@@ -279,8 +277,8 @@ int main(int argc, char* argv[]) {
                     }
                     else if (gridMode == GridMode::rect) {
                         DrawRectangleLines(
-                            (windowWidth / 2) - (referenceRectangle.x / 2),
-                            (windowHeight / 2) - (referenceRectangle.y / 2),
+                            (windowWidth/2.0f) - (referenceRectangle.x/2.0f),
+                            (windowHeight/2.0f) - (referenceRectangle.y/2.0f),
                             referenceRectangle.x,
                             referenceRectangle.y,
                             BLACK
@@ -290,7 +288,7 @@ int main(int argc, char* argv[]) {
                     // Draw all parts
                     fig.draw(texture, WHITE);
                     // Draw selected part over everything
-                    fig[selectedPart].draw(texture, debugColors[selectedPart%debugColors.size()]);
+                    fig[selectedPart].draw(texture, debugColors[selectedPart % debugColors.size()]);
                 }
                 EndMode2D();
 
@@ -300,7 +298,7 @@ int main(int argc, char* argv[]) {
                     DrawText(
                         TextFormat("%s", part.name.c_str()),
                         10, 10+(20*i), 20,
-                        selectedPart == i ? debugColors[selectedPart%debugColors.size()] : WHITE
+                        selectedPart == i ? debugColors[selectedPart % debugColors.size()] : WHITE
                     );
                 }
 
