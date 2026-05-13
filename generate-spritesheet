@@ -1,0 +1,39 @@
+#!/bin/bash
+
+framewidth=300
+frameheight=300
+
+workpath=output
+resultpath=$workpath/result
+
+rimage=$resultpath/result.png
+rdata=$resultpath/data.txt
+
+mkdir -p $resultpath
+rm -f $resultpath/* $rimage $rdata
+touch $rdata
+
+declare -i i=0
+for src in $workpath/*.png; do
+	base=$(basename $src)
+
+# Create a new image that's `frameheight` in height
+	convert $src -resize x$frameheight $resultpath/$base
+
+# Remove brightness from that resulting image (you probably don't want this)
+	convert $resultpath/$base -modulate 0,100,100 $resultpath/$base
+
+# Append to the data file...
+# The current iteration number;
+# Image name (without .png extension);
+# How many frames this image has.
+	echo "#$i" >> $rdata
+	echo "${base:0:-4}" >> $rdata
+	echo "$(($(identify -format "%w" $src) / $framewidth))" >> $rdata
+
+	i=$((i+=1))
+done
+
+# Make a new image that's all the resulting images on top of each other (a working spritesheet)
+convert $resultpath/*png -append $rimage
+
