@@ -21,7 +21,11 @@ int main(int argc, char* argv[]) {
 
             if (arg == "-h" || arg == "--help") {
                 printHelp();
-                return 1;
+                return 0;
+            }
+            else if (arg == "-v" || arg == "--version") {
+                printInfo();
+                return 0;
             }
             else if (arg == "-t" || arg == "--texture") {
                 textureFilename = argv[++i];

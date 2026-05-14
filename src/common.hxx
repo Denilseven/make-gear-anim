@@ -34,9 +34,17 @@ inline Vector2 rotateAround(const Vector2& point, const Vector2& center, float d
     return result + center;
 }
 
+inline void printInfo() {
+    std::cout << "\n";
+    std::cout << "(info)\n\n";
+    std::cout << "\tHome: " <<  "https://github.com/Denilseven/make-gear-anim" << "\n";
+    std::cout << "\tThis executable was built on " << __DATE__ << "\n";
+    std::cout << std::endl;
+}
+
 inline void printHelp() {
     std::cout << "\n";
-    std::cout << "(arguments help)\n\n";
+    std::cout << "(arguments)\n\n";
     std::cout << "[-t | --texture] filename.png" << "\n\tsets the texture to use\n";
     std::cout << "\t(default is `" << DEFAULT_TEXTURE_FILENAME <<"`)\n";
     std::cout << "[-f | --model] filename.fig" << "\n\tsets the figure file (the \"model\")\n";
@@ -47,5 +55,7 @@ inline void printHelp() {
     std::cout << "\t(default is `" << DEFAULT_CAMERA_ZOOM_LEVEL <<"`)\n";
     std::cout << "[-r | --rect] 300 800" << "\n\tsets the size of a reference rectangle\n";
     std::cout << "\t(it gets added as a grid option; default is none)\n";
+    std::cout << "[-v | --version]" << "\n\tshow some program info and exit\n";
+    std::cout << "[-h | --help]" << "\n\tshow this help message and exit\n";
     std::cout << std::endl;
 }
